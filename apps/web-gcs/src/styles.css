@@ -760,6 +760,18 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .about-links a { color: var(--data); text-decoration: none; }
 .about-links a:hover { text-decoration: underline; }
 .about-copy { font-size: 11px; color: var(--ink-faint); border-top: 1px solid var(--line-soft); padding-top: 10px; }
+
+/* Destek / bağış (Patreon tier'ları) modalı */
+.support-box { width: 440px; max-width: 92vw; padding: 18px; display: flex; flex-direction: column; gap: 13px; }
+.support-heart { color: #ff5db1; }
+.support-plat { display: flex; gap: 8px; }
+.support-plat .about-btn { flex: 1; }
+.tier-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.tier { display: flex; align-items: baseline; gap: 12px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); }
+.tier-price { font-family: var(--mono); font-weight: 700; color: var(--data); min-width: 52px; }
+.tier-body { display: flex; flex-direction: column; gap: 2px; }
+.tier-name { font-weight: 700; font-size: 13px; }
+.tier-perk { font-size: 11px; color: var(--ink-dim); line-height: 1.4; }
 .scheme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .scheme-card { display: flex; flex-direction: column; gap: 6px; padding: 6px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; cursor: pointer; text-align: left; }
 .scheme-card:hover { border-color: var(--ink-dim); }

@@ -11,7 +11,8 @@ import { PwaBadge } from './components/PwaBadge';
 import { SerialPortPicker } from './components/SerialPortPicker';
 import { SettingsMenu } from './components/SettingsMenu';
 import { LangSwitch } from './components/LangSwitch';
-import { AboutModal, DONATE_URL } from './components/AboutModal';
+import { AboutModal } from './components/AboutModal';
+import { SupportModal } from './components/SupportModal';
 import { SetupView } from './components/SetupView';
 import { LogView } from './components/LogView';
 import type { MissionDoc } from './gcs/mission-doc';
@@ -28,6 +29,7 @@ export function App() {
   const [params, setParams] = useState<ParamEntry[]>([]);
   const [paramLoad, setParamLoad] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const autoFetched = useRef(false);
 
   // Baglaninca parametreleri otomatik cek (MAVFtp ile hizli; yoksa klasik).
@@ -61,7 +63,7 @@ export function App() {
         {paramLoad === 'error' && <span className="param-load err">{t('Parametre indirilemedi')}</span>}
         <LangSwitch />
         <SettingsMenu />
-        <a className="topbar-icon donate" href={DONATE_URL} target="_blank" rel="noreferrer" title={t('Bağış / Sponsor')} aria-label={t('Bağış / Sponsor')}>♥</a>
+        <button className="topbar-icon donate" onClick={() => setSupportOpen(true)} title={t('Projeyi destekle')} aria-label={t('Projeyi destekle')}>♥</button>
         <button className="topbar-icon" onClick={() => setAboutOpen(true)} title={t('Hakkında')} aria-label={t('Hakkında')}>ⓘ</button>
         <ConnectionBar status={gcs.status} error={gcs.error} onConnect={gcs.connect} onDisconnect={gcs.disconnect} />
       </header>
@@ -74,7 +76,8 @@ export function App() {
       <div className={'view-host' + (view === 'logs' ? '' : ' view-hidden')}><LogView gcs={gcs} /></div>
       <PwaBadge />
       <SerialPortPicker />
-      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} onOpenSupport={() => { setAboutOpen(false); setSupportOpen(true); }} />}
+      {supportOpen && <SupportModal onClose={() => setSupportOpen(false)} />}
     </div>
   );
 }

@@ -30,7 +30,7 @@ export function useGcs(): UseGcs {
     try {
       const link =
         kind === 'webserial'
-          ? new WebSerialLink({ baudRate: opts.baud ?? 57600 })
+          ? new WebSerialLink({ baudRate: opts.baud ?? 115200 })
           : new WebSocketLink(opts.url ?? 'ws://localhost:8080');
       const conn = new WorkerConnection({ link });
       conn.onConnected(() => setStatus('connected'));

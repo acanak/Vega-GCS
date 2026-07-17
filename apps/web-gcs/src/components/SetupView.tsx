@@ -23,7 +23,7 @@ type Section = 'params' | 'firmware' | 'accel' | 'compass' | 'radio' | 'rc' | 's
 const GROUPS: Array<[string, Array<[Section, string]>]> = [
   ['Kurulum', [
     ['firmware', 'Firmware'], ['accel', 'İvmeölçer'], ['compass', 'Pusula'], ['radio', 'Radyo'],
-    ['rc', 'RC / Alıcı'], ['servo', 'Servo Çıkış'], ['plane', 'Airframe'], ['battery', 'Pil / Güç'],
+    ['rc', 'Alıcı'], ['servo', 'Servo Çıkış'], ['plane', 'Airframe'], ['battery', 'Pil / Güç'],
     ['modes', 'Uçuş Modları'], ['failsafe', 'Failsafe'], ['serial', 'Seri Portlar'], ['osd', 'OSD'],
   ]],
   ['Ayar', [

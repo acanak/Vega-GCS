@@ -20,7 +20,7 @@ export function ConnectionBar({ status, error, onConnect, onDisconnect }: Props)
   const t = useT();
   const [kind, setKind] = useState<ConnectKind>('webserial');
   const [url, setUrl] = useState('ws://localhost:8080');
-  const [baud, setBaud] = useState(57600);
+  const [baud, setBaud] = useState(115200);
   const busy = status === 'connecting' || status === 'connected';
 
   return (

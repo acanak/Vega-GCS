@@ -31,7 +31,7 @@ export class WebSerialLink implements Link {
   private closeListeners = new Listeners<(err?: Error) => void>();
 
   constructor(options: WebSerialOptions = {}) {
-    this.baudRate = options.baudRate ?? 57600;
+    this.baudRate = options.baudRate ?? 115200;
     this.providedPort = options.port;
   }
 

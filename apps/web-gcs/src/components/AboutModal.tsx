@@ -7,7 +7,7 @@ export const DONATE_URL = 'https://github.com/sponsors/acanak';
 export const APP_VERSION = '1.0.0';
 
 /** Hakkında ekranı: sürüm, masaüstü indirme, bağış, lisans (AGPL-3.0) ve copyright. */
-export function AboutModal({ onClose }: { onClose: () => void }) {
+export function AboutModal({ onClose, onOpenSupport }: { onClose: () => void; onOpenSupport: () => void }) {
   const t = useT();
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -30,7 +30,7 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
 
         <div className="about-sec">
           <div className="about-sec-hd">{t('Destek ol')}</div>
-          <a className="btn-ghost about-btn about-donate" href={DONATE_URL} target="_blank" rel="noreferrer">♥ {t('Bağış / Sponsor')}</a>
+          <button className="btn-ghost about-btn about-donate" onClick={onOpenSupport}>♥ {t('Bağış / Sponsor')}</button>
         </div>
 
         <div className="about-links">
