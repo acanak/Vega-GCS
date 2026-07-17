@@ -1,64 +1,78 @@
-# Web Mission Planner
+# Roost GCS
 
-ArduPilot [Mission Planner](https://github.com/ardupilot/MissionPlanner) yer kontrol istasyonunun web (tarayıcı) versiyonu. Sıfırdan yazılıyor; Mission Planner yalnızca protokol/davranış referansıdır.
+A modern, browser-based ground control station for ArduPilot vehicles (plane, copter, rover). No install — it runs in the browser and talks to your autopilot over USB (WebSerial) or a WebSocket bridge (SITL / network telemetry).
 
-Kapsamlı plan ve yol haritası: **[PLAN.md](./PLAN.md)**.
+## Features
 
-## Durum — Faz 1 (Uçuş Verisi) + Faz 2 (Plan) + Faz 3 (Parametreler)
+- **Flight data** — glass-cockpit HUD (theme-aware), MapLibre map with live position, flight track, scale bar, and auto-pan; systems panel with battery/GPS/mode/altitude tiles; live autopilot message feed.
+- **GCS assistant** — chat with the GCS in natural language (TR/EN) to run actions (arm, mode, takeoff, speed) and read/write parameters. Safe by design: a deterministic command layer executes everything; an optional LLM (via the bridge) only interprets intent — backends: Codex CLI (ChatGPT subscription), OpenAI, or Anthropic.
+- **Mission planning** — waypoints, survey/lawnmower generation, geofence, rally points, `.waypoints` (QGC WPL 110) import/export, drag-to-edit map.
+- **Parameters** — searchable tree editor, `.param` load/save, and a compare view (file vs. vehicle) with selective apply.
+- **Setup** — firmware, accel/compass/radio calibration (with step-by-step visual guidance), RC/receiver (incl. ELRS options), servo output, plane (V-Tail/Elevon), battery, PID and **TECS** tuning (guided, live capture), flight modes, failsafe, serial ports, and an **OSD designer** (analog + HD MSP DisplayPort) that renders elements as they appear on-screen.
+- **Vehicle-type-aware** — flight mode lists and mode names adapt to the connected vehicle (plane/copter/rover).
+- **Logs** — download dataflash logs over MAVFtp and analyze `.bin`/`.tlog` (charts, FFT, 3D replay, track map); fast parameter download via MAVFtp.
+- **Localization & themes** — English, German, Turkish; light/dark with selectable color schemes.
 
-Uçtan uca akış kuruldu: **araç/SITL → Link → protokol motoru → HUD + harita + kontroller**.
+## Architecture
 
-| Paket | İçerik | Doğrulama |
-|---|---|---|
-| `packages/mavlink-codec` | MAVLink v1/v2 codec + CRC + üretilen diyalekt + jenerik decode/encode (herhangi mesaj) | 16 test ✓ |
-| `packages/link` | Takılabilir `Link`: WebSerial + WebSocket | tsc ✓ |
-| `packages/protocol` | `ProtocolEngine` (link-bağımsız çekirdek) + `MavConnection`; heartbeat, telemetri decode, arm/mod/komut | 11 test ✓ |
-| `tools/mavgen` | MAVLink XML → TS diyalekt üreteci (crc_extra + tel-düzeni, **297 mesaj**) | crc_extra 10 bilinen değere karşı doğrulandı ✓ |
-| `packages/mission` | Görev modeli, MAV_CMD kataloğu, .waypoints (QGC WPL 110) I/O, harita geometrisi | 4 test ✓ |
-| `apps/web-gcs` | React SPA + **protokol Web Worker** (parse, render thread dışında): bağlantı, HUD, harita, telemetri, arm/mod, mesaj akışı | tsc + vite build ✓ |
-| `tools/dev-bridge` | SITL/UDP/TCP MAVLink ↔ WebSocket köprüsü | — |
+Browsers can't open raw TCP/UDP sockets, so MAVLink can't run natively. Two link types cover every case:
 
-## Çalıştırma
+- **WebSerial** — direct to a USB autopilot/radio (primary, serverless, Chromium-based browsers).
+- **WebSocket** — via a small bridge (TCP/UDP/serial ↔ WebSocket) for SITL and network telemetry.
 
-Hazır scriptler (pnpm'in PATH/ön-kontrol tuzaklarını otomatik atlar; bağımlılık yoksa kurar):
+MAVLink parsing/encoding and protocol state run in a **Web Worker**, keeping the render thread smooth.
+
+The project is a pnpm monorepo:
+
+| Package | Purpose |
+|---|---|
+| `packages/mavlink-codec` | MAVLink v1/v2 codec, CRC, generated dialect, generic decode/encode |
+| `packages/link` | Pluggable `Link`: WebSerial + WebSocket |
+| `packages/protocol` | `ProtocolEngine` (link-agnostic core): heartbeat, telemetry, arm/mode/commands, params, MAVFtp |
+| `packages/mission` | Mission model, MAV_CMD catalog, `.waypoints` I/O, map geometry |
+| `packages/logparser` | Dataflash (`.bin`) and `.tlog` parsing for analysis/replay |
+| `apps/web-gcs` | React SPA + protocol Web Worker (UI, HUD, map, setup, assistant) |
+| `tools/mavgen` | MAVLink XML → TypeScript dialect generator (crc_extra + wire layout) |
+| `tools/dev-bridge` | SITL/UDP/TCP MAVLink ↔ WebSocket bridge (+ optional assistant proxy) |
+
+## Getting started
 
 ```bash
-npm run dev        # ./scripts/dev.sh    → Vite dev sunucusu  http://localhost:5173
-npm run bridge     # ./scripts/bridge.sh → SITL/UDP/TCP ↔ WebSocket köprüsü  :8080
-npm run dev:sitl   # köprü + uygulamayı birlikte başlatır
+pnpm install
+
+npm run dev        # Vite dev server → http://localhost:5173
+npm run bridge     # MAVLink (SITL/UDP/TCP) ↔ WebSocket bridge on :8080
+npm run dev:sitl   # ArduPlane SITL (Docker) + bridge + app, one command
 ```
 
-Elle kurulum: `pnpm install`.
+### Real hardware (USB autopilot)
+Run `npm run dev`, open the app in a Chromium-based browser, choose the **WebSerial** link, set the baud (e.g. 57600), and Connect → pick the USB port. No bridge required.
 
-### Gerçek donanım (USB otopilot)
-`npm run dev` → tarayıcıda (Chromium) **WebSerial** link seç, baud gir (örn. 57600), Bağlan → USB portunu seç. Köprü gerekmez.
-
-### SITL ile
+### SITL
 ```bash
-# 1) ayrı terminal:
-sim_vehicle.py -v ArduCopter --out=udpout:127.0.0.1:14550
-# 2) köprü + uygulama:
-npm run dev:sitl
-# 3) tarayıcıda: WebSocket link -> ws://localhost:8080 -> Bağlan
+npm run dev:sitl            # starts SITL + bridge + app
+# in the browser: WebSocket link → ws://localhost:8080 → Connect
 ```
+SITL parameters persist across restarts; use `SITL_RESET=1 npm run dev:sitl` for a clean slate.
 
-### Testler / build
+### AI assistant (optional)
+The assistant works out of the box in local command mode. To enable a real LLM through the bridge:
+
 ```bash
-npm run build                          # tüm paketler (vite build dahil)
-# testler (paket dizininde, pnpm ön-kontrolünü atlayarak):
-( cd packages/mavlink-codec && ../../node_modules/.bin/vitest run )
-( cd packages/protocol     && ../../node_modules/.bin/vitest run )
-# diyalekti yeniden üret:
-npm run generate:dialect
+# ChatGPT subscription via Codex CLI (run `codex login` first):
+CHAT_BACKEND=codex npm run dev:sitl
+# or API keys:
+ANTHROPIC_API_KEY=...  npm run dev:sitl
+OPENAI_API_KEY=...  CHAT_BACKEND=openai  npm run dev:sitl
 ```
 
-## Mimari (özet)
+### Build & test
+```bash
+npm run build              # all packages (incl. vite build)
+npm run test               # package test suites
+npm run generate:dialect   # regenerate the MAVLink dialect
+```
 
-Tarayıcı ham TCP/UDP açamaz; MAVLink native çalışmaz. Bu yüzden:
-- **WebSerial link** → USB otopilot/radyo (birincil, sunucusuz, Chromium).
-- **WebSocket link** → köprü (TCP/UDP/serial ↔ WS), SITL ve ağ telemetrisi için.
+## License
 
-MAVLink codec + protokol motoru ileride Web Worker'a taşınacak (parse'ı render thread'inden ayırmak için). Detay: PLAN.md §2–§3.
-
-## Gereksinimler
-Node ≥ 22, pnpm. (Bu ortamda pnpm `~/.hermes/node/bin/pnpm` konumunda.)
+See [LICENSE](./LICENSE).
