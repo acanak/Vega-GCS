@@ -10,6 +10,8 @@ import { PlannerView } from './components/PlannerView';
 import { PwaBadge } from './components/PwaBadge';
 import { SerialPortPicker } from './components/SerialPortPicker';
 import { SettingsMenu } from './components/SettingsMenu';
+import { LangSwitch } from './components/LangSwitch';
+import { AboutModal, DONATE_URL } from './components/AboutModal';
 import { SetupView } from './components/SetupView';
 import { LogView } from './components/LogView';
 import type { MissionDoc } from './gcs/mission-doc';
@@ -25,6 +27,7 @@ export function App() {
   const [mission, setMission] = useState<MissionDoc>(emptyMission());
   const [params, setParams] = useState<ParamEntry[]>([]);
   const [paramLoad, setParamLoad] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [aboutOpen, setAboutOpen] = useState(false);
   const autoFetched = useRef(false);
 
   // Baglaninca parametreleri otomatik cek (MAVFtp ile hizli; yoksa klasik).
@@ -56,7 +59,10 @@ export function App() {
         </nav>
         {paramLoad === 'loading' && <span className="param-load">{t('Parametreler indiriliyor…')}</span>}
         {paramLoad === 'error' && <span className="param-load err">{t('Parametre indirilemedi')}</span>}
+        <LangSwitch />
         <SettingsMenu />
+        <a className="topbar-icon donate" href={DONATE_URL} target="_blank" rel="noreferrer" title={t('Bağış / Sponsor')} aria-label={t('Bağış / Sponsor')}>♥</a>
+        <button className="topbar-icon" onClick={() => setAboutOpen(true)} title={t('Hakkında')} aria-label={t('Hakkında')}>ⓘ</button>
         <ConnectionBar status={gcs.status} error={gcs.error} onConnect={gcs.connect} onDisconnect={gcs.disconnect} />
       </header>
       {/* Gorunumler mount'ta KALIR; sekme degisince unmount olmaz -> harita/HUD/iz/durum korunur.
@@ -68,6 +74,7 @@ export function App() {
       <div className={'view-host' + (view === 'logs' ? '' : ' view-hidden')}><LogView gcs={gcs} /></div>
       <PwaBadge />
       <SerialPortPicker />
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
     </div>
   );
 }

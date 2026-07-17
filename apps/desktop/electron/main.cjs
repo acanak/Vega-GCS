@@ -3,7 +3,7 @@
 // - Derlenmiş web uygulamasını yerel http ile sunar (PWA/relatif yollar sorunsuz).
 // - MAVLink köprüsünü (UDP:14550 <-> ws:8080) başlatır (ağ telemetrisi).
 // - WebSerial'i (USB otopilot) etkinleştirir.
-const { app, BrowserWindow, session, ipcMain } = require('electron');
+const { app, BrowserWindow, session, ipcMain, shell } = require('electron');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -80,6 +80,11 @@ async function createWindow() {
   });
   ses.on('usb-device-added', () => {});
   ses.on('usb-device-removed', () => {});
+  // Harici linkler (About: GitHub/Releases/Sponsor) sistem tarayıcısında açılsın
+  win.webContents.setWindowOpenHandler(({ url: u }) => {
+    if (/^https?:/i.test(u)) { void shell.openExternal(u); return { action: 'deny' }; }
+    return { action: 'allow' };
+  });
   win.setMenuBarVisibility(false);
   await win.loadURL(url);
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme, SCHEMES } from '../gcs/theme';
 import type { ThemeMode } from '../gcs/theme';
-import { useI18n, useT, LANGS } from '../gcs/i18n';
+import { useT } from '../gcs/i18n';
 
 const MODES: Array<[ThemeMode, string, string]> = [
   ['auto', '⌂', 'Oto'],
@@ -11,7 +11,6 @@ const MODES: Array<[ThemeMode, string, string]> = [
 
 export function SettingsMenu() {
   const { mode, setMode, effective, scheme, setScheme } = useTheme();
-  const { lang, setLang } = useI18n();
   const t = useT();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -42,16 +41,6 @@ export function SettingsMenu() {
       </button>
       {open && (
         <div className="settings-pop" role="dialog" aria-label={t('Görünüm')}>
-          <div className="settings-sec">
-            <div className="settings-hd">{t('Dil')}</div>
-            <div className="lang-grid">
-              {LANGS.map((l) => (
-                <button key={l.key} className={'lang-btn' + (lang === l.key ? ' active' : '')} aria-pressed={lang === l.key} onClick={() => setLang(l.key)}>
-                  <span className="lang-flag">{l.flag}</span>{l.name}
-                </button>
-              ))}
-            </div>
-          </div>
           <div className="settings-sec">
             <div className="settings-hd">{t('Mod')}</div>
             <div className="theme-toggle" role="group" aria-label={t('Tema modu')}>
