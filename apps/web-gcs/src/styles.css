@@ -839,7 +839,7 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 
 /* ---- Aksiyonlar: hızlı mod + dil seçici ---- */
 .act-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.act-quick button { font-size: 12px; padding: 6px 4px; }
+.act-quick button { font-size: 12px; padding: 6px 4px; text-transform: uppercase; letter-spacing: 0.02em; }
 .lang-grid { display: flex; gap: 6px; }
 .lang-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim); border-radius: 8px; padding: 6px 8px; font-size: 12px; cursor: pointer; }
 .lang-btn:hover { color: var(--ink); }

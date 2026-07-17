@@ -49,7 +49,7 @@ export function PlaneSetupView({ gcs, params, setParams }: { gcs: UseGcs; params
   return (
     <div className="setup-panel setup-wide">
       <div className="card">
-        <div className="card-hd"><h2>{t('Uçak kurulumu — kanat / kuyruk karışımı')}</h2><span className="params-spacer" />{!connected && <span className="hd-note">{t('bağlı değil')}</span>}</div>
+        <div className="card-hd"><h2>{t('Airframe — kanat / kuyruk karışımı')}</h2><span className="params-spacer" />{!connected && <span className="hd-note">{t('bağlı değil')}</span>}</div>
         <div className="card-body rc-input">
           {!hasServo ? (
             <div className="empty">{t('SERVO parametreleri yok — Parametreler sekmesinden indirin')}</div>

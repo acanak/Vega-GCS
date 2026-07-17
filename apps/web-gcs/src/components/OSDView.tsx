@@ -317,7 +317,7 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
         </div>
         <div className="card-body grid-scroll">
           <table className="cmd-grid osd-el-grid">
-            <thead><tr><th>{t('Açık')}</th><th>{t('Öğe')}</th><th>X</th><th>Y</th></tr></thead>
+            <thead><tr><th>{t('Etkin')}</th><th>{t('Öğe')}</th><th>X</th><th>Y</th></tr></thead>
             <tbody>
               {list.map((el) => {
                 const en = val(fx(el.token, 'EN'), 0) > 0;
