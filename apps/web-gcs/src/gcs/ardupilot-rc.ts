@@ -172,5 +172,32 @@ export const RSSI_TYPES: readonly CodeLabel[] = [
 /** SERIALx_PROTOCOL = 23 -> RC girisi (RCIN). Bir UART'a bagli alicilar (CRSF/ELRS/FPort) icin. */
 export const SERIAL_PROTOCOL_RCIN = 23;
 
+/** SERIALx_PROTOCOL değerleri (ArduPilot AP_SerialManager kaynağından). */
+export const SERIAL_PROTOCOLS: readonly CodeLabel[] = [
+  { code: -1, label: 'None' }, { code: 1, label: 'MAVLink1' }, { code: 2, label: 'MAVLink2' },
+  { code: 3, label: 'FrSky D' }, { code: 4, label: 'FrSky SPort' }, { code: 5, label: 'GPS' },
+  { code: 7, label: 'Alexmos Gimbal' }, { code: 8, label: 'Gimbal' }, { code: 9, label: 'Rangefinder' },
+  { code: 10, label: 'FrSky SPort Passthrough' }, { code: 11, label: 'Lidar360' }, { code: 13, label: 'Beacon' },
+  { code: 14, label: 'Volz servo out' }, { code: 15, label: 'SBus servo out' }, { code: 16, label: 'ESC Telemetry' },
+  { code: 17, label: 'Devo Telemetry' }, { code: 18, label: 'OpticalFlow' }, { code: 19, label: 'RobotisServo' },
+  { code: 20, label: 'NMEA Output' }, { code: 21, label: 'WindVane' }, { code: 22, label: 'SLCAN' },
+  { code: 23, label: 'RCIN' }, { code: 24, label: 'EFI Serial' }, { code: 25, label: 'LTM' },
+  { code: 26, label: 'RunCam' }, { code: 27, label: 'HottTelem' }, { code: 28, label: 'Scripting' },
+  { code: 29, label: 'Crossfire VTX' }, { code: 30, label: 'Generator' }, { code: 31, label: 'Winch' },
+  { code: 32, label: 'MSP' }, { code: 33, label: 'DJI FPV' }, { code: 34, label: 'AirSpeed' },
+  { code: 35, label: 'ADSB' }, { code: 36, label: 'AHRS' }, { code: 37, label: 'SmartAudio' },
+  { code: 38, label: 'FETtecOneWire' }, { code: 39, label: 'Torqeedo' }, { code: 40, label: 'AIS' },
+  { code: 41, label: 'CoDevESC' }, { code: 42, label: 'DisplayPort (MSP)' }, { code: 43, label: 'MAVLink High Latency' },
+  { code: 44, label: 'IRC Tramp' },
+];
+
+/** SERIALx_BAUD kodlu değerleri (kod -> gerçek baud). */
+export const SERIAL_BAUDS: readonly CodeLabel[] = [
+  { code: 1, label: '1200' }, { code: 2, label: '2400' }, { code: 4, label: '4800' }, { code: 9, label: '9600' },
+  { code: 19, label: '19200' }, { code: 38, label: '38400' }, { code: 57, label: '57600' }, { code: 111, label: '111100' },
+  { code: 115, label: '115200' }, { code: 230, label: '230400' }, { code: 256, label: '256000' }, { code: 460, label: '460800' },
+  { code: 500, label: '500000' }, { code: 921, label: '921600' }, { code: 1500, label: '1500000' }, { code: 2000, label: '2000000' },
+];
+
 const auxMap = new Map(RC_AUX_OPTIONS.map((o) => [o.code, o.label]));
 export const auxLabel = (code: number): string => auxMap.get(code) ?? ('Bilinmeyen (' + code + ')');

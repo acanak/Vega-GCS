@@ -1,12 +1,12 @@
 import type { ParamEntry } from '@wmp/protocol';
-import { paramMeta } from '@wmp/param-meta';
 import type { UseGcs } from '../gcs/useGcs';
+import { SERIAL_PROTOCOLS, SERIAL_BAUDS } from '../gcs/ardupilot-rc';
+import type { CodeLabel } from '../gcs/ardupilot-rc';
 import { useT } from '../gcs/i18n';
-
-const num = (v: string): number => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
 
 export function SerialPortsView({ gcs, params, setParams }: { gcs: UseGcs; params: ParamEntry[]; setParams: (p: ParamEntry[]) => void }) {
   const t = useT();
+  const connected = gcs.status === 'connected';
   const pget = (n: string): ParamEntry | undefined => params.find((p) => p.name === n);
 
   const ports: number[] = [];
@@ -18,8 +18,17 @@ export function SerialPortsView({ gcs, params, setParams }: { gcs: UseGcs; param
     if (e) setParams(params.map((p) => (p.name === name ? { ...p, value } : p)));
   };
 
-  const protoValues = paramMeta('SERIAL1_PROTOCOL')?.values ?? paramMeta('SERIAL2_PROTOCOL')?.values;
-  const baudValues = paramMeta('SERIAL1_BAUD')?.values;
+  // kod -> "kod · etiket" listesinden select; mevcut değer listede yoksa yedek seçenek
+  const Combo = ({ name, list, def }: { name: string; list: readonly CodeLabel[]; def: number }) => {
+    const cur = Math.round(pget(name)?.value ?? def);
+    const known = list.some((o) => o.code === cur);
+    return (
+      <select disabled={!connected || !pget(name)} value={cur} onChange={(e) => write(name, Number(e.target.value))}>
+        {!known && <option value={cur}>{cur} · {t('Bilinmeyen')}</option>}
+        {list.map((o) => <option key={o.code} value={o.code}>{o.code} · {o.label}</option>)}
+      </select>
+    );
+  };
 
   return (
     <div className="setup-panel setup-wide">
@@ -35,24 +44,8 @@ export function SerialPortsView({ gcs, params, setParams }: { gcs: UseGcs; param
                 {ports.map((n) => (
                   <tr key={n}>
                     <td className="p-name">SERIAL{n}</td>
-                    <td>
-                      {baudValues ? (
-                        <select value={Math.round(pget('SERIAL' + n + '_BAUD')?.value ?? 0)} onChange={(e) => write('SERIAL' + n + '_BAUD', Number(e.target.value))}>
-                          {Object.entries(baudValues).sort((a, b) => Number(a[0]) - Number(b[0])).map(([code, label]) => <option key={code} value={code}>{label}</option>)}
-                        </select>
-                      ) : (
-                        <input value={Math.round(pget('SERIAL' + n + '_BAUD')?.value ?? 0)} onChange={(e) => write('SERIAL' + n + '_BAUD', num(e.target.value))} />
-                      )}
-                    </td>
-                    <td>
-                      {protoValues ? (
-                        <select value={Math.round(pget('SERIAL' + n + '_PROTOCOL')?.value ?? -1)} onChange={(e) => write('SERIAL' + n + '_PROTOCOL', Number(e.target.value))}>
-                          {Object.entries(protoValues).sort((a, b) => Number(a[0]) - Number(b[0])).map(([code, label]) => <option key={code} value={code}>{label}</option>)}
-                        </select>
-                      ) : (
-                        <input value={Math.round(pget('SERIAL' + n + '_PROTOCOL')?.value ?? -1)} onChange={(e) => write('SERIAL' + n + '_PROTOCOL', num(e.target.value))} />
-                      )}
-                    </td>
+                    <td><Combo name={'SERIAL' + n + '_BAUD'} list={SERIAL_BAUDS} def={57} /></td>
+                    <td><Combo name={'SERIAL' + n + '_PROTOCOL'} list={SERIAL_PROTOCOLS} def={-1} /></td>
                   </tr>
                 ))}
               </tbody>

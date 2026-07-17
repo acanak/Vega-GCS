@@ -508,6 +508,9 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .mode-slot { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
 .mode-slot.active { border-color: var(--go); background: rgba(56,215,120,0.08); }
 .mode-slot-idx { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); width: 90px; }
+.mode-slot-band { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); min-width: 96px; }
+.mode-ch-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font-size: 12px; color: var(--ink-dim); }
+.mode-ch-row select { width: auto; }
 .mode-slot select { flex: 1; }
 .mode-active { color: var(--go); font-family: var(--mono); font-size: 11px; }
 

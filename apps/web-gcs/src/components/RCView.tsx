@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MSG } from '@wmp/protocol';
 import type { ParamEntry } from '@wmp/protocol';
 import type { UseGcs } from '../gcs/useGcs';
@@ -13,8 +13,11 @@ type Tab = 'channels' | 'input';
 export function RCView({ gcs, params, setParams }: { gcs: UseGcs; params: ParamEntry[]; setParams: (p: ParamEntry[]) => void }) {
   const t = useT();
   const [tab, setTab] = useState<Tab>('channels');
-  const [pwm, setPwm] = useState<number[]>([]);
-  const [rssi, setRssi] = useState<number>(-1);
+  // Canlı PWM/RSSI DOM'a imperatif yazılır (setState olsaydı her RC mesajında
+  // yeniden render olup açık <select> kapanırdı — AUX fonksiyon seçici sorunu).
+  const barRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const valRefs = useRef<Record<number, HTMLSpanElement | null>>({});
+  const rssiRef = useRef<HTMLSpanElement | null>(null);
   const connected = gcs.status === 'connected';
   const pget = (n: string): ParamEntry | undefined => params.find((p) => p.name === n);
   const pval = (n: string, d = 0): number => Math.round(pget(n)?.value ?? d);
@@ -41,11 +44,16 @@ export function RCView({ gcs, params, setParams }: { gcs: UseGcs; params: ParamE
     const conn = gcs.connRef.current;
     if (!conn) return;
     return conn.subscribeMessage(MSG.RC_CHANNELS, (f) => {
-      const arr: number[] = [];
-      for (let i = 1; i <= 16; i++) arr.push(Number(f['chan' + i + '_raw']) || 0);
-      setPwm(arr);
+      for (let i = 1; i <= 16; i++) {
+        const v = Number(f['chan' + i + '_raw']) || 0;
+        const bar = barRefs.current[i];
+        if (bar) bar.style.width = pwmPct(v) + '%';
+        const val = valRefs.current[i];
+        if (val) val.textContent = v ? String(v) : '—';
+      }
       const r = Number(f.rssi);
-      setRssi(Number.isFinite(r) && r !== 255 ? Math.round((r / 254) * 100) : -1);
+      const pct = Number.isFinite(r) && r !== 255 ? Math.round((r / 254) * 100) : -1;
+      if (rssiRef.current) rssiRef.current.textContent = pct >= 0 ? 'RSSI %' + pct : '';
     });
   }, [gcs.status, gcs.connRef]);
 
@@ -70,7 +78,7 @@ export function RCView({ gcs, params, setParams }: { gcs: UseGcs; params: ParamE
             <button className={tab === 'input' ? 'active' : ''} onClick={() => setTab('input')}>{t('Giriş & Protokol')}</button>
           </div>
           <span className="params-spacer" />
-          {rssi >= 0 && <span className="hd-note">RSSI %{rssi}</span>}
+          <span className="hd-note" ref={rssiRef}></span>
           {!connected && <span className="hd-note">{t('bağlı değil')}</span>}
         </div>
 
@@ -85,13 +93,12 @@ export function RCView({ gcs, params, setParams }: { gcs: UseGcs; params: ParamE
                 <thead><tr><th>#</th><th>{t('PWM (canlı)')}</th><th>Min</th><th>Trim</th><th>Max</th><th>{t('Ölü B.')}</th><th>{t('Ters')}</th><th>{t('Aux Fonksiyon')} (RCn_OPTION)</th></tr></thead>
                 <tbody>
                   {channels.map((n) => {
-                    const live = pwm[n - 1] ?? 0;
                     return (
                       <tr key={n}>
                         <td>{n}</td>
                         <td>
-                          <div className="rc-track" style={{ minWidth: 90 }}><div className="rc-fill" style={{ width: pwmPct(live) + '%' }} /></div>
-                          <span className="p-units">{live || '—'}</span>
+                          <div className="rc-track" style={{ minWidth: 90 }}><div className="rc-fill" ref={(el) => { barRefs.current[n] = el; }} style={{ width: '0%' }} /></div>
+                          <span className="p-units" ref={(el) => { valRefs.current[n] = el; }}>—</span>
                         </td>
                         <td><input disabled={!connected} value={pval('RC' + n + '_MIN', 1000)} onChange={(e) => write('RC' + n + '_MIN', num(e.target.value))} /></td>
                         <td><input disabled={!connected} value={pval('RC' + n + '_TRIM', 1500)} onChange={(e) => write('RC' + n + '_TRIM', num(e.target.value))} /></td>

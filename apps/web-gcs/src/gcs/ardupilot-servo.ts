@@ -163,7 +163,7 @@ export const PLANE_SURFACES: Record<string, { code: number; label: string }> = {
   rudder: { code: 21, label: 'Rudder' },
   flaperon_left: { code: 24, label: 'Flaperon Left' },
   flaperon_right: { code: 25, label: 'Flaperon Right' },
-  throttle: { code: 70, label: 'Throttle' },
+  throttle: { code: 70, label: 'Throttle (Main)' },
   throttle_left: { code: 73, label: 'Throttle Left' },
   throttle_right: { code: 74, label: 'Throttle Right' },
   elevon_left: { code: 77, label: 'Elevon Left' },
@@ -173,8 +173,9 @@ export const PLANE_SURFACES: Record<string, { code: number; label: string }> = {
 };
 
 /** Ucak tipi -> gosterilecek yuzey anahtarlari (sirali). */
+// Her uçak tipi çok-motorlu olabilir: ana + sol + sağ motor çıkışları eklenir.
 export const PLANE_LAYOUTS: Record<'standard' | 'elevon' | 'vtail', string[]> = {
-  standard: ['aileron', 'elevator', 'rudder', 'throttle'],
-  elevon: ['elevon_left', 'elevon_right', 'rudder', 'throttle'],
-  vtail: ['aileron', 'vtail_left', 'vtail_right', 'throttle'],
+  standard: ['aileron', 'elevator', 'rudder', 'throttle', 'throttle_left', 'throttle_right'],
+  elevon: ['elevon_left', 'elevon_right', 'rudder', 'throttle', 'throttle_left', 'throttle_right'],
+  vtail: ['aileron', 'vtail_left', 'vtail_right', 'throttle', 'throttle_left', 'throttle_right'],
 };
