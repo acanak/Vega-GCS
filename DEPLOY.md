@@ -40,7 +40,9 @@ Notes:
 - pnpm is auto-detected from `pnpm-lock.yaml`. `apps/desktop` (Electron) is excluded from the pnpm
   workspace (`pnpm-workspace.yaml`), so the build stays fast and never pulls Electron.
 - Node version is pinned by `.node-version` (22).
-- SPA/deep-link fallback: `not_found_handling` above (and `apps/web-gcs/public/_redirects`).
+- SPA/deep-link fallback: `not_found_handling = "single-page-application"` (wrangler.toml). Do **not**
+  add a `_redirects` `/* /index.html 200` rule for Workers Static Assets — Cloudflare rejects it as an
+  infinite loop. (A classic **Pages** project would use `_redirects` instead of `not_found_handling`.)
 - No COOP/COEP or extra headers are needed for WebSerial/WebUSB — only HTTPS (automatic).
 - The "chunks larger than 500 kB" line is a **warning, not an error** (Cesium/MapLibre are large); it does not fail the build.
 
