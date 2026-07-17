@@ -18,8 +18,9 @@ export function SerialPortsView({ gcs, params, setParams }: { gcs: UseGcs; param
     if (e) setParams(params.map((p) => (p.name === name ? { ...p, value } : p)));
   };
 
-  // kod -> "kod · etiket" listesinden select; mevcut değer listede yoksa yedek seçenek
-  const Combo = ({ name, list, def }: { name: string; list: readonly CodeLabel[]; def: number }) => {
+  // kod -> "kod · etiket" listesinden select; JSX döndüren DÜZ FONKSIYON (bileşen DEĞİL) —
+  // aksi halde her render'da remount olup açık <select> kapanır.
+  const combo = (name: string, list: readonly CodeLabel[], def: number) => {
     const cur = Math.round(pget(name)?.value ?? def);
     const known = list.some((o) => o.code === cur);
     return (
@@ -44,8 +45,8 @@ export function SerialPortsView({ gcs, params, setParams }: { gcs: UseGcs; param
                 {ports.map((n) => (
                   <tr key={n}>
                     <td className="p-name">SERIAL{n}</td>
-                    <td><Combo name={'SERIAL' + n + '_BAUD'} list={SERIAL_BAUDS} def={57} /></td>
-                    <td><Combo name={'SERIAL' + n + '_PROTOCOL'} list={SERIAL_PROTOCOLS} def={-1} /></td>
+                    <td>{combo('SERIAL' + n + '_BAUD', SERIAL_BAUDS, 57)}</td>
+                    <td>{combo('SERIAL' + n + '_PROTOCOL', SERIAL_PROTOCOLS, -1)}</td>
                   </tr>
                 ))}
               </tbody>

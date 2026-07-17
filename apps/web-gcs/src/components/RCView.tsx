@@ -57,7 +57,8 @@ export function RCView({ gcs, params, setParams }: { gcs: UseGcs; params: ParamE
     });
   }, [gcs.status, gcs.connRef]);
 
-  const AuxSelect = ({ n }: { n: number }) => {
+  // JSX döndüren DÜZ FONKSIYON (bileşen DEĞİL) — aksi halde üst render'da remount olup açık liste kapanır.
+  const auxSelect = (n: number) => {
     const cur = pval('RC' + n + '_OPTION');
     const known = RC_AUX_OPTIONS.some((o) => o.code === cur);
     return (
@@ -105,7 +106,7 @@ export function RCView({ gcs, params, setParams }: { gcs: UseGcs; params: ParamE
                         <td><input disabled={!connected} value={pval('RC' + n + '_MAX', 2000)} onChange={(e) => write('RC' + n + '_MAX', num(e.target.value))} /></td>
                         <td><input disabled={!connected} value={pval('RC' + n + '_DZ')} onChange={(e) => write('RC' + n + '_DZ', num(e.target.value))} /></td>
                         <td><input type="checkbox" disabled={!connected} checked={pval('RC' + n + '_REVERSED') > 0} onChange={(e) => write('RC' + n + '_REVERSED', e.target.checked ? 1 : 0)} /></td>
-                        <td>{pget('RC' + n + '_OPTION') ? <AuxSelect n={n} /> : <span className="p-units">—</span>}</td>
+                        <td>{pget('RC' + n + '_OPTION') ? auxSelect(n) : <span className="p-units">—</span>}</td>
                       </tr>
                     );
                   })}
