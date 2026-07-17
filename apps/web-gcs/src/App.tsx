@@ -46,7 +46,7 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand"><span className="brand-mark">◈</span> ROOST GCS</div>
+        <div className="brand"><span className="brand-mark">◈</span> VEGA GCS</div>
         <nav className="viewnav">
           <button className={view === 'flight' ? 'active' : ''} onClick={() => setView('flight')}>{t('Uçuş Verisi')}</button>
           <button className={view === 'status' ? 'active' : ''} onClick={() => setView('status')}>{t('Durum')}</button>

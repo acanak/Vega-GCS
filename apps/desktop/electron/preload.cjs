@@ -1,7 +1,7 @@
 'use strict';
 const { contextBridge, ipcRenderer } = require('electron');
 // Uygulamaya masaüstü olduğunu, platformu ve WebSerial port seçici köprüsünü bildir.
-contextBridge.exposeInMainWorld('roostDesktop', {
+contextBridge.exposeInMainWorld('vegaDesktop', {
   isDesktop: true,
   platform: process.platform,
   serial: {

@@ -2,8 +2,8 @@
   "name": "@wmp/desktop",
   "version": "0.0.0",
   "private": true,
-  "description": "Roost GCS desktop (Electron) — Windows / macOS / Linux",
-  "author": "Roost GCS",
+  "description": "Vega GCS desktop (Electron) — Windows / macOS / Linux",
+  "author": "Vega GCS",
   "main": "electron/main.cjs",
   "scripts": {
     "start": "electron .",
@@ -17,8 +17,8 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.roost.gcs",
-    "productName": "Roost GCS",
+    "appId": "com.vega.gcs",
+    "productName": "Vega GCS",
     "directories": { "output": "release" },
     "files": ["electron/**/*", "package.json"],
     "extraResources": [{ "from": "../web-gcs/dist", "to": "web" }],

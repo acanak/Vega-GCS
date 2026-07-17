@@ -1,5 +1,5 @@
 'use strict';
-// Roost GCS masaüstü (Electron) ana süreç.
+// Vega GCS masaüstü (Electron) ana süreç.
 // - Derlenmiş web uygulamasını yerel http ile sunar (PWA/relatif yollar sorunsuz).
 // - MAVLink köprüsünü (UDP:14550 <-> ws:8080) başlatır (ağ telemetrisi).
 // - WebSerial'i (USB otopilot) etkinleştirir.

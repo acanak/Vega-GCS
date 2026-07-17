@@ -8,29 +8,29 @@ interface DesktopSerial {
   cancel: () => void;
 }
 declare global {
-  interface Window { roostDesktop?: { isDesktop?: boolean; platform?: string; serial?: DesktopSerial } }
+  interface Window { vegaDesktop?: { isDesktop?: boolean; platform?: string; serial?: DesktopSerial } }
 }
 
 const hex = (n?: number): string => (n ?? 0).toString(16).padStart(4, '0');
 
 /**
  * Masaüstü (Electron) için WebSerial port seçici. Tarayıcıda kendi seçicisi olduğundan
- * bu bileşen yalnızca window.roostDesktop varsa etkinleşir; aksi halde hiçbir şey yapmaz.
+ * bu bileşen yalnızca window.vegaDesktop varsa etkinleşir; aksi halde hiçbir şey yapmaz.
  */
 export function SerialPortPicker() {
   const t = useT();
   const [ports, setPorts] = useState<DesktopPort[] | null>(null);
 
   useEffect(() => {
-    const s = window.roostDesktop?.serial;
+    const s = window.vegaDesktop?.serial;
     if (!s) return;
     return s.onPorts((list) => setPorts(list));
   }, []);
 
   if (!ports) return null;
 
-  const pick = (portId: string): void => { window.roostDesktop?.serial?.choose(portId); setPorts(null); };
-  const cancel = (): void => { window.roostDesktop?.serial?.cancel(); setPorts(null); };
+  const pick = (portId: string): void => { window.vegaDesktop?.serial?.choose(portId); setPorts(null); };
+  const cancel = (): void => { window.vegaDesktop?.serial?.cancel(); setPorts(null); };
 
   return (
     <div className="serial-picker-overlay" onClick={cancel}>

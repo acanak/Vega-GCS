@@ -1,4 +1,4 @@
-# Roost GCS
+# Vega GCS
 
 A modern, browser-based ground control station for ArduPilot vehicles (plane, copter, rover). No install — it runs in the browser and talks to your autopilot over USB (WebSerial) or a WebSocket bridge (SITL / network telemetry).
 

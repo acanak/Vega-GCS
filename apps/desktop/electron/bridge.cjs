@@ -92,7 +92,7 @@ function proxyGet(targetUrl, proxyUrl, depth = 0) {
     req.on('connect', (resC, socket) => {
       if (resC.statusCode !== 200) { socket.destroy(); reject(new Error('CONNECT ' + resC.statusCode)); return; }
       const s = tls.connect({ socket, servername: t.hostname, ca: trustedCA() }, () => {
-        s.write('GET ' + (t.pathname + t.search) + ' HTTP/1.1\r\nHost: ' + t.hostname + '\r\nUser-Agent: RoostGCS/1.0\r\nAccept: */*\r\nConnection: close\r\n\r\n');
+        s.write('GET ' + (t.pathname + t.search) + ' HTTP/1.1\r\nHost: ' + t.hostname + '\r\nUser-Agent: VegaGCS/1.0\r\nAccept: */*\r\nConnection: close\r\n\r\n');
       });
       const chunks = [];
       s.on('data', (d) => chunks.push(d));
@@ -123,7 +123,7 @@ async function fetchBuf(url) {
   const ac = new AbortController();
   const to = setTimeout(() => ac.abort(), 30000);
   try {
-    const r = await fetch(url, { headers: { 'user-agent': 'RoostGCS/1.0', accept: '*/*' }, signal: ac.signal, redirect: 'follow' });
+    const r = await fetch(url, { headers: { 'user-agent': 'VegaGCS/1.0', accept: '*/*' }, signal: ac.signal, redirect: 'follow' });
     if (!r.ok) throw new Error('HTTP ' + r.status + ' @ ' + url);
     return Buffer.from(await r.arrayBuffer());
   } finally { clearTimeout(to); }

@@ -138,7 +138,7 @@ export function ParamsView({ gcs, params, setParams }: Props) {
   // Dosyaya kaydet: mevcut parametreleri .param olarak indir
   const saveToFile = (): void => {
     if (!params.length) return;
-    const lines = ['# Roost GCS param dosyası'];
+    const lines = ['# Vega GCS param dosyası'];
     for (const p of [...params].sort((a, b) => a.name.localeCompare(b.name))) lines.push(p.name + ',' + fmtParam(p.value));
     const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);

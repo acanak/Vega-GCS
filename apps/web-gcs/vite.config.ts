@@ -12,8 +12,8 @@ export default defineConfig({
       includeAssets: ['pfd-icon.svg'],
       devOptions: { enabled: true, type: 'module' },
       manifest: {
-        name: 'Roost GCS',
-        short_name: 'Roost GCS',
+        name: 'Vega GCS',
+        short_name: 'Vega GCS',
         description: 'ArduPilot web yer kontrol istasyonu',
         theme_color: '#080b0f',
         background_color: '#080b0f',
