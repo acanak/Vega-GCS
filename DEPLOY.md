@@ -16,14 +16,33 @@ select `acanak/Vega-GCS`, branch `main`, then set:
 | Build output directory | `apps/web-gcs/dist` |
 | Root directory | *(leave empty = repo root)* |
 
-Deploy → you get `https://vega-gcs.pages.dev` (name = your project). Every push to `main` redeploys.
+Deploy → you get `https://vega-gcs.<subdomain>.workers.dev` (or `vega-gcs.pages.dev`). Every push to `main` redeploys.
+
+### Deploy target (`wrangler.toml`)
+The repo ships a root `wrangler.toml` so the deploy step (`npx wrangler deploy`, Workers Static
+Assets) knows exactly what to upload — without it, wrangler fails in a monorepo with
+*"application detection logic has been run in the root of a workspace"*:
+```toml
+name = "vega-gcs"
+compatibility_date = "2024-11-01"
+[assets]
+directory = "apps/web-gcs/dist"
+not_found_handling = "single-page-application"
+```
+**Important:** `name` must match your Cloudflare project's name. If your project is named differently,
+edit `name` in `wrangler.toml` (or rename the project) so they match.
+
+*Classic Pages alternative:* if you use a **Pages** project (not Workers Builds), leave the deploy
+command empty and set **Build output directory** = `apps/web-gcs/dist`; Pages auto-uploads it and
+`wrangler.toml` is not used.
 
 Notes:
 - pnpm is auto-detected from `pnpm-lock.yaml`. `apps/desktop` (Electron) is excluded from the pnpm
-  workspace (`pnpm-workspace.yaml`), so the Pages build stays fast and never pulls Electron.
+  workspace (`pnpm-workspace.yaml`), so the build stays fast and never pulls Electron.
 - Node version is pinned by `.node-version` (22).
-- SPA/deep-link fallback is handled by `apps/web-gcs/public/_redirects` (`/*  /index.html  200`).
+- SPA/deep-link fallback: `not_found_handling` above (and `apps/web-gcs/public/_redirects`).
 - No COOP/COEP or extra headers are needed for WebSerial/WebUSB — only HTTPS (automatic).
+- The "chunks larger than 500 kB" line is a **warning, not an error** (Cesium/MapLibre are large); it does not fail the build.
 
 ## 2) Custom domain (registered at GoDaddy)
 
