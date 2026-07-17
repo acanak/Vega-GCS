@@ -1,15 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { MSG, modeName, vehicleModeIds } from '@wmp/protocol';
+import { MSG, modeName, vehicleModeIds, frameClass } from '@wmp/protocol';
 import type { ParamEntry, VehicleTelemetry } from '@wmp/protocol';
 import type { UseGcs } from '../gcs/useGcs';
 import { useT } from '../gcs/i18n';
 
 const R2D = 180 / Math.PI;
-const GROUPS: Array<{ title: string; params: string[] }> = [
+interface PidGroup { title: string; params: string[] }
+// Kopter (ATC_*): rate + angle P
+const COPTER_GROUPS: PidGroup[] = [
   { title: 'Roll hız (rate)', params: ['ATC_RAT_RLL_P', 'ATC_RAT_RLL_I', 'ATC_RAT_RLL_D'] },
   { title: 'Pitch hız (rate)', params: ['ATC_RAT_PIT_P', 'ATC_RAT_PIT_I', 'ATC_RAT_PIT_D'] },
   { title: 'Yaw hız (rate)', params: ['ATC_RAT_YAW_P', 'ATC_RAT_YAW_I', 'ATC_RAT_YAW_D'] },
   { title: 'Açı (angle) P', params: ['ATC_ANG_RLL_P', 'ATC_ANG_PIT_P', 'ATC_ANG_YAW_P'] },
+];
+// Uçak (ArduPlane): sabit-kanat rate PID'leri + zaman sabiti (kaynak: APM_Control)
+const PLANE_GROUPS: PidGroup[] = [
+  { title: 'Roll hız (rate)', params: ['RLL_RATE_P', 'RLL_RATE_I', 'RLL_RATE_D', 'RLL_RATE_FF'] },
+  { title: 'Pitch hız (rate)', params: ['PTCH_RATE_P', 'PTCH_RATE_I', 'PTCH_RATE_D', 'PTCH_RATE_FF'] },
+  { title: 'Yaw hız (rate)', params: ['YAW_RATE_P', 'YAW_RATE_I', 'YAW_RATE_D', 'YAW_RATE_FF'] },
+  { title: 'Zaman sabiti / limit', params: ['RLL2SRV_TCONST', 'PTCH2SRV_TCONST', 'RLL2SRV_RMAX', 'PTCH2SRV_RMAX_UP'] },
 ];
 
 function PidRow({ p, disabled, onWrite }: { p: ParamEntry; disabled: boolean; onWrite: (n: string, v: number) => void }) {
@@ -18,7 +27,7 @@ function PidRow({ p, disabled, onWrite }: { p: ParamEntry; disabled: boolean; on
   const commit = (): void => { const v = parseFloat(draft); if (Number.isFinite(v) && v !== p.value) onWrite(p.name, v); };
   return (
     <label className="chk plane-fp">
-      <span>{p.name.replace('ATC_', '').replace(/_/g, ' ')}</span>
+      <span>{p.name}</span>
       <input disabled={disabled} className={dirty ? 'dirty' : ''} value={draft}
         onChange={(e) => setDraft(e.target.value)} onBlur={commit}
         onKeyDown={(e) => { if (e.key === 'Enter') commit(); }} />
@@ -108,12 +117,15 @@ export function PidTuneView({ gcs, params, setParams, telemetry }: {
   const atId = telemetry ? vehicleModeIds(telemetry.vehicleType).AUTOTUNE : undefined;
   const startAutotune = (): void => { if (atId !== undefined) void gcs.connRef.current?.setMode(atId); };
 
-  const hasPids = GROUPS.some((g) => g.params.some((n) => pget(n)));
+  const fc = frameClass(telemetry?.vehicleType ?? 0);
+  const groups = fc === 'plane' ? PLANE_GROUPS : COPTER_GROUPS;
+  const fcLabel = fc === 'plane' ? t('Uçak') : fc === 'rover' ? t('Rover') : t('Kopter');
+  const hasPids = groups.some((g) => g.params.some((n) => pget(n)));
 
   return (
     <div className="setup-panel setup-wide">
       <div className="card">
-        <div className="card-hd"><h2>{t('PID ayar')}</h2><span className="params-spacer" /><span className="hd-note">{t('Mod:')} {curMode}</span></div>
+        <div className="card-hd"><h2>{t('PID ayar')} · {fcLabel}</h2><span className="params-spacer" /><span className="hd-note">{t('Mod:')} {curMode}</span></div>
         <div className="card-body rc-input">
           <section className="rc-sec">
             <div className="rc-sec-hd">{t('Canlı gövde hızları (°/s) —')} <span style={{ color: 'var(--warn)' }}>roll</span> · <span style={{ color: 'var(--go)' }}>pitch</span> · <span style={{ color: 'var(--data)' }}>yaw</span></div>
@@ -133,10 +145,10 @@ export function PidTuneView({ gcs, params, setParams, telemetry }: {
           <section className="rc-sec">
             <div className="rc-sec-hd">{t('PID parametreleri')}</div>
             {!hasPids ? (
-              <div className="empty">{t('ATC_* PID parametreleri yok — Parametreler sekmesinden indirin (Copter)')}</div>
+              <div className="empty">{fcLabel} {t('PID parametreleri yok — Parametreler sekmesinden indirin')}</div>
             ) : (
               <div className="pid-groups">
-                {GROUPS.map((g) => {
+                {groups.map((g) => {
                   const rows = g.params.map((n) => pget(n)).filter(Boolean) as ParamEntry[];
                   if (!rows.length) return null;
                   return (

@@ -94,6 +94,20 @@ export const OSD_UNITS: readonly Code[] = [
   { code: 3, label: 'Havacılık' },
 ];
 
+// OSD_FONT (kaynak: AP_OSD/fonts/README). 0-4 gömülü, 5-9 SD-karttan (font5.bin..font9.bin).
+export const OSD_FONTS: readonly Code[] = [
+  { code: 0, label: 'clarity (varsayılan)' },
+  { code: 1, label: 'clarity_medium' },
+  { code: 2, label: 'bfstyle' },
+  { code: 3, label: 'bold' },
+  { code: 4, label: 'digital' },
+  { code: 5, label: 'SD font5' },
+  { code: 6, label: 'SD font6' },
+  { code: 7, label: 'SD font7' },
+  { code: 8, label: 'SD font8' },
+  { code: 9, label: 'SD font9' },
+];
+
 /** MSP DisplayPort (HD gözlük) için serial port protokolü. */
 export const SERIAL_PROTO_MSP_DISPLAYPORT = 42;
 export const SERIAL_PROTO_MSP = 32;
@@ -106,6 +120,31 @@ export const OSD_WARN: readonly Code[] = [
   { code: 0, label: 'OSD_W_RSSI' },
   { code: 0, label: 'OSD_W_NSAT' },
 ];
+
+// Gözlük (goggle) kendi OSD ögelerini bu bölgelere çizer; AP ögelerini buralara
+// koymamak çakışmayı önler. Değerler grid oranı (0..1). YAKLAŞIKTIR — gözlük/firmware'e göre değişir.
+export interface OsdZone { x: number; y: number; w: number; h: number; label: string }
+export const GOGGLE_PRESETS: ReadonlyArray<{ key: string; label: string }> = [
+  { key: 'none', label: 'Yok' },
+  { key: 'dji', label: 'DJI (O3/Goggles)' },
+  { key: 'caddx', label: 'Caddx / Walksnail' },
+  { key: 'hdzero', label: 'HDZero' },
+];
+export const GOGGLE_ZONES: Readonly<Record<string, readonly OsdZone[]>> = {
+  dji: [
+    { x: 0.00, y: 0.00, w: 0.30, h: 0.10, label: 'DJI durum' },
+    { x: 0.70, y: 0.00, w: 0.30, h: 0.10, label: 'DJI pil/sinyal' },
+    { x: 0.32, y: 0.86, w: 0.36, h: 0.14, label: 'DJI uyarı' },
+  ],
+  caddx: [
+    { x: 0.00, y: 0.00, w: 0.28, h: 0.10, label: 'WS durum' },
+    { x: 0.72, y: 0.00, w: 0.28, h: 0.10, label: 'WS pil/gecikme' },
+    { x: 0.35, y: 0.90, w: 0.30, h: 0.10, label: 'WS alt bilgi' },
+  ],
+  hdzero: [
+    { x: 0.00, y: 0.92, w: 1.00, h: 0.08, label: 'HDZero alt çubuk' },
+  ],
+};
 
 /** Ekran çözünürlüğü OSD<n>_TXT_RES; grid boyutunu belirler. */
 export interface OsdRes { code: number; label: string; cols: number; rows: number; }

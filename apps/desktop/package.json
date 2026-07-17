@@ -1,0 +1,28 @@
+{
+  "name": "@wmp/desktop",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Roost GCS desktop (Electron) — Windows / macOS / Linux",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.roost.gcs",
+    "productName": "Roost GCS",
+    "directories": { "output": "release" },
+    "files": ["electron/**/*", "package.json"],
+    "extraResources": [{ "from": "../web-gcs/dist", "to": "web" }],
+    "mac": { "target": ["dmg", "zip"], "category": "public.app-category.utilities" },
+    "win": { "target": ["nsis", "portable"] },
+    "linux": { "target": ["AppImage"], "category": "Utility" }
+  }
+}

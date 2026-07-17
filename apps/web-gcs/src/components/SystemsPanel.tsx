@@ -37,11 +37,11 @@ export function SystemsPanel({ telemetry, onCollapse, statusTexts }: { telemetry
       <div className={'card-body' + (msgs ? ' sys-body' : '')}>
         <div className="tiles">
           <Tile label={tr('Batarya')} value={t ? num(t.battery.voltage, 2) + 'V' : '—'} sub={t && t.battery.remaining >= 0 ? t.battery.remaining + '%' : ''} tone={battTone} />
-          <Tile label="GPS" value={t ? tr(GPS_FIX[t.gps.fixType] ?? '?') : '—'} sub={t ? t.gps.satellites + ' ' + tr('uydu') : ''} tone={gpsTone} />
+          <Tile label={tr('Akım')} value={t && t.battery.current >= 0 ? num(t.battery.current) + 'A' : '—'} sub={t && t.battery.current >= 0 && Number.isFinite(t.battery.voltage) ? Math.round(t.battery.voltage * t.battery.current) + ' W' : ''} tone="caution" />
           <Tile label={tr('Yer hızı')} value={t ? num(t.vfr.groundspeed) : '—'} sub="m/s" tone="data" />
           <Tile label={tr('İrtifa')} value={t ? num(t.position.relativeAlt) : '—'} sub="m · rel" tone="data" />
-          <Tile label={tr('Mod')} value={t ? modeName(t.vehicleType, t.customMode) : '—'} sub={t ? (t.armed ? 'ARMED' : 'disarmed') : ''} tone={t && t.armed ? 'go' : ''} wide />
-          <Tile label={tr('Paket')} value={t ? String(t.packetsReceived) : '—'} sub={tr('alındı')} wide />
+          <Tile label={tr('Mod')} value={t ? modeName(t.vehicleType, t.customMode) : '—'} sub={t ? (t.armed ? 'ARMED' : 'disarmed') : ''} tone={t && t.armed ? 'go' : ''} />
+          <Tile label="GPS" value={t ? tr(GPS_FIX[t.gps.fixType] ?? '?') : '—'} sub={t ? t.gps.satellites + ' ' + tr('uydu') : ''} tone={gpsTone} />
         </div>
         {msgs && (
           <div className="sys-msgs">

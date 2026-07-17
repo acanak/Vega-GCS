@@ -13,6 +13,8 @@
     "bridge:udp": "MODE=udp UDP_PORT=14550 bash scripts/bridge.sh",
     "sitl": "bash scripts/sitl.sh",
     "dev:sitl": "bash scripts/dev-sitl.sh",
+    "desktop": "pnpm --filter @wmp/web-gcs build && pnpm --filter @wmp/desktop start",
+    "desktop:build": "pnpm --filter @wmp/web-gcs build && pnpm --filter @wmp/desktop build",
     "build": "pnpm -r --if-present build",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",

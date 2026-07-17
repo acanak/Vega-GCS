@@ -73,6 +73,22 @@ npm run test               # package test suites
 npm run generate:dialect   # regenerate the MAVLink dialect
 ```
 
+## Desktop app (Windows / macOS / Linux)
+
+A native desktop build is provided via Electron (`apps/desktop`). It bundles the web app, serves it locally, runs the MAVLink bridge in-process (UDP telemetry ↔ WebSocket), and enables WebSerial for USB autopilots — so USB and network telemetry both work with no separate bridge.
+
+```bash
+pnpm install
+npm run desktop         # build the web app + launch the desktop app (dev)
+npm run desktop:build   # produce installers into apps/desktop/release/
+```
+
+`desktop:build` produces, per host OS: **Windows** (NSIS installer + portable `.exe`), **macOS** (`.dmg`), **Linux** (`.AppImage`). Build each target on its own OS (or in CI — GitHub Actions matrix). Code signing/notarization needs your own certificates.
+
+## iPad / tablet (PWA)
+
+The app is an installable PWA (offline-capable, cached tiles). On iPad, open it in Safari and **Add to Home Screen**. iPadOS Safari does **not** support WebSerial (no USB), so on tablets connect over the network: run the bridge on a companion computer / laptop and use the **WebSocket** link (`ws://<host>:8080`) with UDP/telemetry forwarded to it. Android/Chromebook Chrome additionally support WebSerial for direct USB.
+
 ## License
 
 See [LICENSE](./LICENSE).

@@ -4,7 +4,7 @@ import { modeName } from '@wmp/protocol';
 import type { UseGcs } from '../gcs/useGcs';
 import { useTelemetry } from '../gcs/useTelemetry';
 import { useT } from '../gcs/i18n';
-import { OSD_ELEMENTS, OSD_TYPES, OSD_UNITS, OSD_RES, OSD_WARN, SERIAL_PROTO_MSP_DISPLAYPORT, SERIAL_BAUD_115200 } from '../gcs/ardupilot-osd';
+import { OSD_ELEMENTS, OSD_TYPES, OSD_UNITS, OSD_RES, OSD_WARN, OSD_FONTS, GOGGLE_PRESETS, GOGGLE_ZONES, SERIAL_PROTO_MSP_DISPLAYPORT, SERIAL_BAUD_115200 } from '../gcs/ardupilot-osd';
 
 const clampI = (v: number, max: number): number => Math.max(0, Math.min(max, Math.round(v)));
 const DIR_ARROWS = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
@@ -64,6 +64,8 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
   const [drag, setDrag] = useState<{ token: string; x: number; y: number } | null>(null);
   const [search, setSearch] = useState('');
   const [adv, setAdv] = useState(false);
+  const [goggle, setGoggle] = useState(() => localStorage.getItem('wmp-osd-goggle') || 'none');
+  const setGoggleP = (g: string): void => { setGoggle(g); localStorage.setItem('wmp-osd-goggle', g); };
   const [local, setLocal] = useState<Record<string, number>>({});
   const gridRef = useRef<HTMLDivElement | null>(null);
   const connected = gcs.status === 'connected';
@@ -88,8 +90,8 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
   const osdUnits = val('OSD_UNITS', 0);
   const isHd = osdType === 5;
 
-  // MSP/DisplayPort için serial port (SERIALx_PROTOCOL = 42)
-  const SERIAL_PORTS = [1, 2, 3, 4, 5, 6, 7];
+  // MSP/DisplayPort için serial port (SERIALx_PROTOCOL = 42). SERIAL0..9 (bazı FC'ler farklı port kullanır).
+  const SERIAL_PORTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   const curPort = SERIAL_PORTS.find((x) => val('SERIAL' + x + '_PROTOCOL', -1) === SERIAL_PROTO_MSP_DISPLAYPORT) ?? 0;
   const setOsdPort = (x: number): void => { if (!x) return; setP('SERIAL' + x + '_PROTOCOL', SERIAL_PROTO_MSP_DISPLAYPORT); setP('SERIAL' + x + '_BAUD', SERIAL_BAUD_115200); };
   const needsPort = [osdType, osdType2].some((tp) => tp === 5 || tp === 3);
@@ -215,15 +217,16 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
                 {OSD_RES.map((o) => <option key={o.code} value={o.code}>{o.label}</option>)}
               </select>
             </label>
-            {needsPort && (
-              <label className="osd-set">
-                <span>{t('Port (MSP DisplayPort)')}</span>
-                <select value={curPort} onChange={(e) => setOsdPort(Number(e.target.value))}>
-                  <option value={0}>{t('— seç —')}</option>
-                  {SERIAL_PORTS.map((x) => <option key={x} value={x}>SERIAL{x}{val('SERIAL' + x + '_PROTOCOL', -1) === SERIAL_PROTO_MSP_DISPLAYPORT ? ' ✓' : ''}</option>)}
-                </select>
-              </label>
-            )}
+            <label className="osd-set" title={needsPort ? '' : t('OSD tipi MSP / DisplayPort iken kullanılır')}>
+              <span>{t('Port (MSP DisplayPort)')}{needsPort ? '' : ' ⚠'}</span>
+              <select value={curPort} onChange={(e) => setOsdPort(Number(e.target.value))}>
+                <option value={0}>{t('— seç —')}</option>
+                {SERIAL_PORTS.filter((x) => x > 0).map((x) => {
+                  const p = val('SERIAL' + x + '_PROTOCOL', -1);
+                  return <option key={x} value={x}>SERIAL{x} · {p >= 0 ? 'p' + p : '—'}{p === SERIAL_PROTO_MSP_DISPLAYPORT ? ' ✓' : ''}</option>;
+                })}
+              </select>
+            </label>
             <span className="osd-gridinfo">{cols}×{rows}</span>
           </div>
 
@@ -238,7 +241,15 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
             </label>
             <label className="osd-set">
               <span>{t('Font')} (OSD_FONT)</span>
-              <input className="osd-num" value={val('OSD_FONT', 0)} onChange={(e) => setP('OSD_FONT', clampI(Number(e.target.value), 21))} />
+              <select value={val('OSD_FONT', 0)} onChange={(e) => setP('OSD_FONT', Number(e.target.value))}>
+                {OSD_FONTS.map((o) => <option key={o.code} value={o.code}>{o.code} · {o.label}</option>)}
+              </select>
+            </label>
+            <label className="osd-set">
+              <span>{t('Gözlük yerleşimi')}</span>
+              <select value={goggle} onChange={(e) => setGoggleP(e.target.value)} title={t('Gözlüğün kendi OSD ögelerini grid’de gölgeli gösterir (çakışmayı önlemek için)')}>
+                {GOGGLE_PRESETS.map((g) => <option key={g.key} value={g.key}>{g.label}</option>)}
+              </select>
             </label>
             <button className="btn-ghost osd-adv-btn" onClick={() => setAdv((a) => !a)}>{adv ? '▾' : '▸'} {t('Gelişmiş')}</button>
           </div>
@@ -260,24 +271,41 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
           )}
 
           {typeNote && <div className="osd-typenote">⚠ {typeNote}</div>}
+          {connected && !has('OSD_TYPE') && <div className="osd-typenote">⚠ {t('OSD parametreleri yüklü değil — Parametreler sekmesinden indirin.')}</div>}
 
           <div className="osd-grid" ref={gridRef} style={{ aspectRatio: cols + ' / ' + rows, backgroundSize: 100 / cols + '% ' + 100 / rows + '%' }}>
+            {/* Gözlük kendi OSD bölgeleri (çakışmayı önlemek için) */}
+            {(GOGGLE_ZONES[goggle] ?? []).map((z, i) => (
+              <div key={'z' + i} className="osd-zone" style={{ left: z.x * 100 + '%', top: z.y * 100 + '%', width: z.w * 100 + '%', height: z.h * 100 + '%' }}>
+                <span>{z.label}</span>
+              </div>
+            ))}
+            {/* X/Y koordinat cetvelleri */}
+            {Array.from({ length: Math.ceil(cols / 5) }, (_, i) => i * 5).map((c) => (
+              <span key={'tx' + c} className="osd-tick osd-tick-x" style={{ left: (c / cols) * 100 + '%' }}>{c}</span>
+            ))}
+            {Array.from({ length: Math.ceil(rows / 4) }, (_, i) => i * 4).map((r) => (
+              <span key={'ty' + r} className="osd-tick osd-tick-y" style={{ top: (r / rows) * 100 + '%' }}>{r}</span>
+            ))}
             {enabledEls.map((el) => {
               const x = drag?.token === el.token ? drag.x : val(fx(el.token, 'X'), 0);
               const y = drag?.token === el.token ? drag.y : val(fx(el.token, 'Y'), 0);
               const vis = visual(el.token);
               return (
-                <div key={el.token} className={'osd-item' + (vis.gfx ? ' gfx' : '')} title={el.token + ' · ' + el.label}
+                <div key={el.token} className={'osd-item' + (vis.gfx ? ' gfx' : '') + (drag?.token === el.token ? ' dragging' : '')} title={el.token + ' · ' + el.label}
                   style={{ left: (x / cols) * 100 + '%', top: (y / rows) * 100 + '%', ...(vis.w ? { width: vis.w, height: vis.h } : {}) }}
                   onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setDrag({ token: el.token, x, y }); }}
                   onPointerMove={move} onPointerUp={up}>
                   {vis.node}
+                  {drag?.token === el.token && <span className="osd-coord">X{drag.x} Y{drag.y}</span>}
                 </div>
               );
             })}
             {enabledCount === 0 && <div className="osd-empty">{t('Sağdaki listeden öğe açın')}</div>}
           </div>
-          <div className="osd-hint">{t('Öğeleri sürükleyerek konumlandırın')} · OSD{screen} · {enabledCount} {t('aktif')}. {connected ? t('Değişiklikler araca yazılır.') : t('Çevrimdışı tasarım — bağlanınca yazılır.')}</div>
+          <div className="osd-hint">
+            {drag ? <b>{drag.token}: X{drag.x} · Y{drag.y}</b> : t('Öğeleri sürükleyerek konumlandırın')} · OSD{screen} · {enabledCount} {t('aktif')} · {t('grid')} {cols}×{rows}. {connected ? t('Değişiklikler araca yazılır.') : t('Çevrimdışı tasarım — bağlanınca yazılır.')}
+          </div>
         </div>
       </div>
 
