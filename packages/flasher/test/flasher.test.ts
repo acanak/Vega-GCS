@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { crc32, expectedFlashCrc } from '../src/crc32';
+import { crc32, crc32Px4, expectedFlashCrc } from '../src/crc32';
 import { parseApj } from '../src/apj';
 
 const ascii = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0));
@@ -19,11 +19,13 @@ describe('crc32', () => {
   it('"123456789" standart kontrol degeri 0xCBF43926', () => {
     expect(crc32(ascii('123456789'))).toBe(0xcbf43926);
   });
-  it('expectedFlashCrc: kisa imaj 0xff ile doldurulur', () => {
+  it('expectedFlashCrc: kisa imaj 0xff ile doldurulur (bootloader/px4 varyanti)', () => {
     const img = ascii('AB');
     const padded = new Uint8Array(8).fill(0xff);
     padded.set(img);
-    expect(expectedFlashCrc(img, 8)).toBe(crc32(padded));
+    // Bootloader GET_CRC = init 0, son XOR yok (zlib DEGIL)
+    expect(expectedFlashCrc(img, 8)).toBe(crc32Px4(padded));
+    expect(expectedFlashCrc(img, 8)).not.toBe(crc32(padded));
   });
 });
 

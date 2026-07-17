@@ -105,6 +105,24 @@ export function decodeVfrHud(p: Uint8Array): VfrHud {
   };
 }
 
+export interface NavControllerOutput {
+  navRoll: number;    // derece — otopilotun komut ettiği roll (flight director)
+  navPitch: number;   // derece — komut edilen pitch
+  navBearing: number; // derece
+  targetBearing: number;
+  wpDist: number;     // m
+}
+export function decodeNavControllerOutput(p: Uint8Array): NavControllerOutput {
+  const v = dv(p, 26);
+  return {
+    navRoll: v.getFloat32(0, true),
+    navPitch: v.getFloat32(4, true),
+    navBearing: v.getInt16(20, true),
+    targetBearing: v.getInt16(22, true),
+    wpDist: v.getUint16(24, true),
+  };
+}
+
 export interface SysStatus {
   voltageBattery: number; // V
   currentBattery: number; // A (-1 bilinmiyor)

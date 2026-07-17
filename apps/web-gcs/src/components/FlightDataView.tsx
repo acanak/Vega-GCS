@@ -11,6 +11,7 @@ import type { ParamEntry } from '@wmp/protocol';
 import { Hud } from './Hud';
 import { MapView } from './MapView';
 import { ActionsPanel } from './ActionsPanel';
+import { NumberPromptModal } from './NumberPromptModal';
 import { SystemsPanel } from './SystemsPanel';
 import { ChatPanel } from './ChatPanel';
 
@@ -36,7 +37,8 @@ export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params
   const connected = gcs.status === 'connected';
 
   const [gotoAlt, setGotoAlt] = useState(30);
-  const [clickGoto, setClickGoto] = useState(false);
+  const [gotoTarget, setGotoTarget] = useState<{ lat: number; lon: number } | null>(null);
+  const [guidedTarget, setGuidedTarget] = useState<{ lat: number; lon: number } | null>(null);
   const [sysOpen, setSysOpen] = useState(() => localStorage.getItem('wmp-sys-open') !== '0');
   const toggleSys = (open: boolean): void => { setSysOpen(open); localStorage.setItem('wmp-sys-open', open ? '1' : '0'); };
 
@@ -54,11 +56,13 @@ export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params
       vx: 0, vy: 0, vz: 0, afx: 0, afy: 0, afz: 0, yaw: 0, yaw_rate: 0,
       type_mask: POS_TYPE_MASK, target_system: t.sysid || 1, target_component: t.compid || 1, coordinate_frame: 6,
     });
-    setClickGoto(false);
   };
-  const altitudeGo = (): void => {
-    const t = gcs.connRef.current?.telemetry;
-    if (t && Number.isFinite(t.position.lat) && Number.isFinite(t.position.lon)) gotoPoint(t.position.lat, t.position.lon);
+  // Haritada sağ tık -> hedef önerisi (popup). Onaylanınca git + işaretçiyi çiz.
+  const confirmGoto = (): void => {
+    if (!gotoTarget) return;
+    gotoPoint(gotoTarget.lat, gotoTarget.lon);
+    setGuidedTarget(gotoTarget);
+    setGotoTarget(null);
   };
 
   const loadReplay = async (file: File): Promise<void> => {
@@ -111,14 +115,14 @@ export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params
           </div>
         ) : (
           <>
-            <ActionsPanel connRef={gcs.connRef} connected={connected} gotoAlt={gotoAlt} setGotoAlt={setGotoAlt} clickGoto={clickGoto} setClickGoto={setClickGoto} onAltitudeGo={altitudeGo} onOpenReplay={() => fileRef.current?.click()} vehicleType={telemetry?.vehicleType ?? 0} />
+            <ActionsPanel connRef={gcs.connRef} connected={connected} onOpenReplay={() => fileRef.current?.click()} vehicleType={telemetry?.vehicleType ?? 0} />
             <input ref={fileRef} type="file" accept=".tlog,.bin,.log" style={{ display: 'none' }}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) void loadReplay(f); e.target.value = ''; }} />
           </>
         )}
       </section>
       <section className="col col-map">
-        <div className="card map-card"><MapView connRef={activeRef} adsb={adsb} guidedGoto={!playback && clickGoto} onGoto={playback ? undefined : gotoPoint} /></div>
+        <div className="card map-card"><MapView connRef={activeRef} adsb={adsb} onContextGoto={playback ? undefined : (lat, lon) => setGotoTarget({ lat, lon })} guidedTarget={guidedTarget} /></div>
       </section>
       {sysOpen ? (
         <aside className="col col-sys-fill">
@@ -130,6 +134,18 @@ export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params
           <span className="sys-rail-icon">‹</span>
           <span className="sys-rail-label">{t('Sistemler')}</span>
         </button>
+      )}
+      {gotoTarget && (
+        <NumberPromptModal
+          title={t('Buraya git (Guided)')}
+          message={`${gotoTarget.lat.toFixed(6)}, ${gotoTarget.lon.toFixed(6)}`}
+          label={t('Hedef irtifa')}
+          value={gotoAlt}
+          onValue={setGotoAlt}
+          confirmLabel={t('Git')}
+          onConfirm={confirmGoto}
+          onClose={() => setGotoTarget(null)}
+        />
       )}
     </main>
   );

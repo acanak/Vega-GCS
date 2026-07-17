@@ -22,6 +22,7 @@ import {
   decodeAttitude,
   decodeGlobalPositionInt,
   decodeVfrHud,
+  decodeNavControllerOutput,
   decodeSysStatus,
   decodeGpsRawInt,
   decodeStatusText,
@@ -41,6 +42,7 @@ export interface VehicleTelemetry {
   attitude: { roll: number; pitch: number; yaw: number };
   position: { lat: number; lon: number; alt: number; relativeAlt: number; hdg: number };
   vfr: { airspeed: number; groundspeed: number; alt: number; climb: number; throttle: number };
+  nav: { roll: number; pitch: number; bearing: number; valid: boolean }; // NAV_CONTROLLER_OUTPUT (flight director), derece
   battery: { voltage: number; current: number; remaining: number };
   gps: { fixType: number; satellites: number };
   packetsReceived: number;
@@ -59,6 +61,7 @@ export function emptyTelemetry(): VehicleTelemetry {
     attitude: { roll: 0, pitch: 0, yaw: 0 },
     position: { lat: NaN, lon: NaN, alt: NaN, relativeAlt: NaN, hdg: NaN },
     vfr: { airspeed: 0, groundspeed: 0, alt: 0, climb: 0, throttle: 0 },
+    nav: { roll: 0, pitch: 0, bearing: 0, valid: false },
     battery: { voltage: NaN, current: -1, remaining: -1 },
     gps: { fixType: 0, satellites: 0 },
     packetsReceived: 0,
@@ -235,6 +238,14 @@ export class ProtocolEngine {
         t.vfr.alt = h.alt;
         t.vfr.climb = h.climb;
         t.vfr.throttle = h.throttle;
+        break;
+      }
+      case MSG.NAV_CONTROLLER_OUTPUT: {
+        const n = decodeNavControllerOutput(f.payload);
+        t.nav.roll = n.navRoll;
+        t.nav.pitch = n.navPitch;
+        t.nav.bearing = n.navBearing;
+        t.nav.valid = true;
         break;
       }
       case MSG.SYS_STATUS: {

@@ -41,8 +41,17 @@ export function useGcs(): UseGcs {
       await conn.open();
       connRef.current = conn;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-      setStatus('error');
+      const msg = e instanceof Error ? e.message : String(e);
+      // Kullanıcı port seçmeden kapattı / seçilebilir port yok -> arıza değil, nazik uyarı
+      const cancelled = (e instanceof DOMException && (e.name === 'NotFoundError' || e.name === 'AbortError'))
+        || /No port selected|No device selected|cancel/i.test(msg);
+      if (cancelled) {
+        setError('Port seçilmedi. Otopilotu USB ile bağlayıp tekrar Connect deneyin (masaüstü uygulamasında port listesi açılır).');
+        setStatus('disconnected');
+      } else {
+        setError(msg);
+        setStatus('error');
+      }
     }
   }, []);
 

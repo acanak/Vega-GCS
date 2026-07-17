@@ -81,30 +81,45 @@ export class Px4Bootloader {
   }
 }
 
-/** Uctan uca flash: sync -> info -> erase -> program -> CRC dogrula -> reboot. */
-export async function flashApj(
+/**
+ * Ham imaj flash: sync -> info -> (varsa kart kontrolu) -> erase -> program -> CRC dogrula -> reboot.
+ * expectBoardId verilmezse kart uyumu KONTROL EDILMEZ (ham .bin icin — dogru kartı kullanıcı doğrular).
+ */
+export async function flashImage(
   io: SerialIO,
-  apj: Apj,
+  image: Uint8Array,
   onProgress?: (done: number, total: number) => void,
   onLog?: (msg: string) => void,
+  expectBoardId?: number,
 ): Promise<BoardInfo> {
   const bl = new Px4Bootloader(io);
   onLog?.('Senkronizasyon…');
   await bl.sync();
   const info = await bl.getInfo();
   onLog?.('Kart ' + info.boardId + ' · BL rev ' + info.blRev + ' · flash ' + info.flashSize + ' B');
-  if (apj.boardId && info.boardId && apj.boardId !== info.boardId) {
-    throw new Error('Kart uyumsuz: firmware ' + apj.boardId + ' ≠ kart ' + info.boardId);
+  if (expectBoardId && info.boardId && expectBoardId !== info.boardId) {
+    throw new Error('Kart uyumsuz: firmware ' + expectBoardId + ' ≠ kart ' + info.boardId);
   }
+  if (image.length > info.flashSize) throw new Error('İmaj flash boyutundan büyük (' + image.length + ' > ' + info.flashSize + ')');
   onLog?.('Flash siliniyor…');
   await bl.erase();
-  onLog?.('Yazılıyor…');
-  await bl.program(apj.image, onProgress);
+  onLog?.('Yazılıyor… (' + Math.round(image.length / 1024) + ' KB)');
+  await bl.program(image, onProgress);
   onLog?.('Doğrulanıyor…');
-  const exp = expectedFlashCrc(apj.image, info.flashSize);
+  const exp = expectedFlashCrc(image, info.flashSize);
   const act = await bl.getCrc();
   if (exp !== act) throw new Error('CRC uyuşmuyor (beklenen ' + exp + ', gelen ' + act + ')');
   onLog?.('CRC OK · yeniden başlatılıyor');
   await bl.reboot();
   return info;
+}
+
+/** Uctan uca .apj flash (kart uyumu apj.board_id ile kontrol edilir). */
+export function flashApj(
+  io: SerialIO,
+  apj: Apj,
+  onProgress?: (done: number, total: number) => void,
+  onLog?: (msg: string) => void,
+): Promise<BoardInfo> {
+  return flashImage(io, apj.image, onProgress, onLog, apj.boardId);
 }

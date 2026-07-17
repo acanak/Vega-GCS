@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { vehicleModeIds, quickModes } from '@wmp/protocol';
 import type { GcsConnection } from '../gcs/protocol-shared';
 import { useT } from '../gcs/i18n';
+import { NumberPromptModal } from './NumberPromptModal';
 
 // MAV_CMD kodlari (constants'ta tanimli degil, dogrudan)
 const CMD_NAV_TAKEOFF = 22;
@@ -10,19 +11,15 @@ const CMD_DO_CHANGE_SPEED = 178;
 interface Props {
   connRef: { current: GcsConnection | null };
   connected: boolean;
-  gotoAlt: number;
-  setGotoAlt: (v: number) => void;
-  clickGoto: boolean;
-  setClickGoto: (v: boolean) => void;
-  onAltitudeGo: () => void;
   onOpenReplay?: () => void;
   vehicleType: number;
 }
 
-export function ActionsPanel({ connRef, connected, gotoAlt, setGotoAlt, clickGoto, setClickGoto, onAltitudeGo, onOpenReplay, vehicleType }: Props) {
+export function ActionsPanel({ connRef, connected, onOpenReplay, vehicleType }: Props) {
   const t = useT();
   const [mode, setMode] = useState('GUIDED');
   const [takeoffAlt, setTakeoffAlt] = useState(10);
+  const [takeoffOpen, setTakeoffOpen] = useState(false);
   const [speed, setSpeed] = useState(5);
   const [msg, setMsg] = useState<string | null>(null);
   const conn = (): GcsConnection | null => connRef.current;
@@ -65,26 +62,15 @@ export function ActionsPanel({ connRef, connected, gotoAlt, setGotoAlt, clickGot
           {quicks.map((nm) => (
             <button key={nm} className="btn-ghost" disabled={!connected} onClick={() => applyMode(nm)}>{nm === 'LAND' ? t('İniş') : nm}</button>
           ))}
+          <button className="btn-ghost" disabled={!connected} onClick={() => setTakeoffOpen(true)}>{t('Kalkış')}</button>
         </div>
 
         <div className="act-row">
-          <button className="btn-primary" disabled={!connected} onClick={takeoff}>{t('Kalkış')}</button>
-          <input className="act-num" type="number" disabled={!connected} value={takeoffAlt} onChange={(e) => setTakeoffAlt(Number(e.target.value))} />
-          <span className="p-units">m</span>
           <button className="btn-ghost" disabled={!connected} onClick={changeSpeed}>{t('Hız')}</button>
           <input className="act-num" type="number" disabled={!connected} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
           <span className="p-units">m/s</span>
         </div>
-
-        <div className="act-row">
-          <button className={'btn-ghost' + (clickGoto ? ' act-armed' : '')} disabled={!connected} onClick={() => setClickGoto(!clickGoto)}>
-            {clickGoto ? t('Haritaya tıkla…') : t('Tıkla-git')}
-          </button>
-          <button className="btn-ghost" disabled={!connected} onClick={onAltitudeGo} title={t('Mevcut konumda irtifayı değiştir')}>{t('İrtifa git')}</button>
-          <input className="act-num" type="number" disabled={!connected} value={gotoAlt} onChange={(e) => setGotoAlt(Number(e.target.value))} />
-          <span className="p-units">m</span>
-        </div>
-        <p className="setup-desc act-hint">{t('Tıkla-git ve İrtifa git komutları GUIDED modda çalışır. Hedef irtifa göreceli (home’a göre).')}</p>
+        <p className="setup-desc act-hint">{t('Guided git için haritada bir noktaya sağ tıklayın. Kalkış GUIDED modda çalışır.')}</p>
 
         {onOpenReplay && (
           <div className="act-replay">
@@ -92,6 +78,20 @@ export function ActionsPanel({ connRef, connected, gotoAlt, setGotoAlt, clickGot
           </div>
         )}
       </div>
+
+      {takeoffOpen && (
+        <NumberPromptModal
+          title={t('Kalkış')}
+          message={t('GUIDED moda geçilip ARM edilecek ve otomatik kalkış yapılacak. Emin misiniz?')}
+          label={t('Hedef irtifa')}
+          value={takeoffAlt}
+          onValue={setTakeoffAlt}
+          confirmLabel={t('Kalkış')}
+          danger
+          onConfirm={() => { takeoff(); setTakeoffOpen(false); }}
+          onClose={() => setTakeoffOpen(false)}
+        />
+      )}
     </div>
   );
 }

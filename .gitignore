@@ -7,3 +7,5 @@ coverage/
 .DS_Store
 .vite/
 pnpm-debug.log*
+release/
+package-lock.json

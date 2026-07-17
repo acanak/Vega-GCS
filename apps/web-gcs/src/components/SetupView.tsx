@@ -19,10 +19,16 @@ import { SerialPortsView } from './SerialPortsView';
 import { OSDView } from './OSDView';
 
 type Section = 'params' | 'firmware' | 'accel' | 'compass' | 'radio' | 'rc' | 'servo' | 'plane' | 'battery' | 'tune' | 'tecs' | 'modes' | 'failsafe' | 'serial' | 'osd';
-const SECTIONS: Array<[Section, string]> = [
-  ['params', 'Parametreler'], ['firmware', 'Firmware'], ['accel', 'İvmeölçer'], ['compass', 'Pusula'],
-  ['radio', 'Radyo'], ['rc', 'RC / Alıcı'], ['servo', 'Servo Çıkış'], ['plane', 'Uçak (VTail/Elevon)'],
-  ['battery', 'Pil / Güç'], ['tune', 'PID Ayar'], ['tecs', 'TECS (Uçak)'], ['modes', 'Uçuş Modları'], ['failsafe', 'Failsafe'], ['serial', 'Seri Portlar'], ['osd', 'OSD'],
+// Menü grupları: Kurulum ve Ayar (Tune) ayrı gruplar; Parametreler en altta.
+const GROUPS: Array<[string, Array<[Section, string]>]> = [
+  ['Kurulum', [
+    ['firmware', 'Firmware'], ['accel', 'İvmeölçer'], ['compass', 'Pusula'], ['radio', 'Radyo'],
+    ['rc', 'RC / Alıcı'], ['servo', 'Servo Çıkış'], ['plane', 'Uçak (VTail/Elevon)'], ['battery', 'Pil / Güç'],
+    ['modes', 'Uçuş Modları'], ['failsafe', 'Failsafe'], ['serial', 'Seri Portlar'], ['osd', 'OSD'],
+  ]],
+  ['Ayar', [
+    ['tune', 'PID Ayar'], ['tecs', 'TECS (Uçak)'],
+  ]],
 ];
 
 interface Props {
@@ -34,13 +40,21 @@ interface Props {
 
 export function SetupView({ gcs, params, setParams, telemetry }: Props) {
   const t = useT();
-  const [section, setSection] = useState<Section>('params');
+  const [section, setSection] = useState<Section>('firmware');
   return (
     <main className="setup">
       <nav className="setup-nav">
-        {SECTIONS.map(([id, label]) => (
-          <button key={id} className={section === id ? 'active' : ''} onClick={() => setSection(id)}>{t(label)}</button>
+        {GROUPS.map(([title, items]) => (
+          <div className="setup-nav-group" key={title}>
+            <div className="setup-nav-hd">{t(title)}</div>
+            {items.map(([id, label]) => (
+              <button key={id} className={section === id ? 'active' : ''} onClick={() => setSection(id)}>{t(label)}</button>
+            ))}
+          </div>
         ))}
+        <div className="setup-nav-group setup-nav-bottom">
+          <button className={section === 'params' ? 'active' : ''} onClick={() => setSection('params')}>{t('Parametreler')}</button>
+        </div>
       </nav>
       <div className="setup-content">
         {section === 'params' && <ParamsView gcs={gcs} params={params} setParams={setParams} />}

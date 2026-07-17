@@ -8,6 +8,7 @@ import { FlightDataView } from './components/FlightDataView';
 import { StatusView } from './components/StatusView';
 import { PlannerView } from './components/PlannerView';
 import { PwaBadge } from './components/PwaBadge';
+import { SerialPortPicker } from './components/SerialPortPicker';
 import { SettingsMenu } from './components/SettingsMenu';
 import { SetupView } from './components/SetupView';
 import { LogView } from './components/LogView';
@@ -45,7 +46,7 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand"><span className="brand-mark">◈</span> WEB MISSION PLANNER</div>
+        <div className="brand"><span className="brand-mark">◈</span> ROOST GCS</div>
         <nav className="viewnav">
           <button className={view === 'flight' ? 'active' : ''} onClick={() => setView('flight')}>{t('Uçuş Verisi')}</button>
           <button className={view === 'status' ? 'active' : ''} onClick={() => setView('status')}>{t('Durum')}</button>
@@ -66,6 +67,7 @@ export function App() {
       <div className={'view-host' + (view === 'setup' ? '' : ' view-hidden')}><SetupView gcs={gcs} params={params} setParams={setParams} telemetry={telemetry} /></div>
       <div className={'view-host' + (view === 'logs' ? '' : ' view-hidden')}><LogView gcs={gcs} /></div>
       <PwaBadge />
+      <SerialPortPicker />
     </div>
   );
 }

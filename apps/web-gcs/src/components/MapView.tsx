@@ -38,22 +38,23 @@ const niceScale = (mpp: number, maxPx = 90): { meters: number; px: number } => {
   return { meters, px: meters / mpp };
 };
 
-export function MapView({ connRef, adsb = [], guidedGoto = false, onGoto }: {
+export function MapView({ connRef, adsb = [], onContextGoto, guidedTarget }: {
   connRef: { current: GcsConnection | null }; adsb?: AdsbContact[];
-  guidedGoto?: boolean; onGoto?: (lat: number, lon: number) => void;
+  onContextGoto?: (lat: number, lon: number) => void;
+  guidedTarget?: { lat: number; lon: number } | null;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { effective } = useTheme();
   const t = useT();
   const mapRef = useRef<maplibregl.Map | null>(null);
   const adsbMarkers = useRef<maplibregl.Marker[]>([]);
-  const gotoRef = useRef<{ on: boolean; cb?: (lat: number, lon: number) => void }>({ on: false });
+  const gotoRef = useRef<{ cb?: (lat: number, lon: number) => void }>({});
   const gotoMarker = useRef<maplibregl.Marker | null>(null);
   const [ready, setReady] = useState(false);
   const [autoPan, setAutoPan] = useState(true);
   const autoPanRef = useRef(true);
   useEffect(() => { autoPanRef.current = autoPan; }, [autoPan]);
-  gotoRef.current = { on: guidedGoto, cb: onGoto };
+  gotoRef.current = { cb: onContextGoto };
 
   // Overlay okumalari: re-render yerine dogrudan DOM'a yazilir (mousemove/move cok sik tetiklenir)
   const coordRef = useRef<HTMLSpanElement | null>(null);
@@ -88,14 +89,11 @@ export function MapView({ connRef, adsb = [], guidedGoto = false, onGoto }: {
     map.on('mousemove', (e) => updateCoord(e.lngLat.lng, e.lngLat.lat));
     map.on('move', updateScale);
 
-    map.on('click', (e) => {
+    // Sağ tık (contextmenu) -> guided goto hedefi öner. İşaretçi onaydan sonra (guidedTarget) çizilir.
+    map.on('contextmenu', (e) => {
       const g = gotoRef.current;
-      if (!g.on || !g.cb) return;
-      const el = document.createElement('div');
-      el.className = 'goto-marker';
-      el.innerHTML = GOTO_SVG;
-      gotoMarker.current?.remove();
-      gotoMarker.current = new maplibregl.Marker({ element: el }).setLngLat([e.lngLat.lng, e.lngLat.lat]).addTo(map);
+      if (!g.cb) return;
+      e.preventDefault();
       g.cb(e.lngLat.lat, e.lngLat.lng);
     });
 
@@ -159,13 +157,22 @@ export function MapView({ connRef, adsb = [], guidedGoto = false, onGoto }: {
 
   useEffect(() => { const m = mapRef.current; if (m) applyOsmPaint(m, effective); }, [effective]);
 
-  // Tikla-git imleci: canvas'a imperatif uygula. className'i DEGISTIRME — yoksa React,
-  // MapLibre'nin ekledigi 'maplibregl-map' sinifini silip konteyneri position:relative'den
-  // cikarir ve canvas viewport'a kacip HUD'u kaplar.
+  // Guided hedef işaretçisi: onaylanan noktaya çiz; hedef temizlenince kaldır.
   useEffect(() => {
     const m = mapRef.current;
-    if (m) m.getCanvas().style.cursor = guidedGoto ? 'crosshair' : '';
-  }, [guidedGoto, ready]);
+    if (!m) return;
+    if (guidedTarget) {
+      if (!gotoMarker.current) {
+        const el = document.createElement('div');
+        el.className = 'goto-marker';
+        el.innerHTML = GOTO_SVG;
+        gotoMarker.current = new maplibregl.Marker({ element: el });
+      }
+      gotoMarker.current.setLngLat([guidedTarget.lon, guidedTarget.lat]).addTo(m);
+    } else {
+      gotoMarker.current?.remove();
+    }
+  }, [guidedTarget, ready]);
 
   return (
     <div className="map-wrap">

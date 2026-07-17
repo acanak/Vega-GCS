@@ -3,7 +3,7 @@
 // - Derlenmiş web uygulamasını yerel http ile sunar (PWA/relatif yollar sorunsuz).
 // - MAVLink köprüsünü (UDP:14550 <-> ws:8080) başlatır (ağ telemetrisi).
 // - WebSerial'i (USB otopilot) etkinleştirir.
-const { app, BrowserWindow, session } = require('electron');
+const { app, BrowserWindow, session, ipcMain } = require('electron');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -52,11 +52,34 @@ async function createWindow() {
     width: 1440, height: 900, backgroundColor: '#080b0f',
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true },
   });
-  // WebSerial: navigator.serial.requestPort() -> ilk seri portu ver (v1). Gerçek seçici sonradan eklenebilir.
-  win.webContents.session.on('select-serial-port', (event, portList, callback) => {
+  // WebSerial port seçici: Electron'da tarayıcı seçicisi yoktur; portları renderer'a
+  // gönderip kullanıcının seçmesini bekleriz. İMZA 4 argüman: (event, portList, webContents, callback).
+  let serialCallback = null;
+  let serialPorts = [];
+  const mapPort = (p) => ({ portId: p.portId, portName: p.portName, displayName: p.displayName, vendorId: p.vendorId, productId: p.productId, serialNumber: p.serialNumber });
+  const sendPorts = () => { if (!win.isDestroyed()) win.webContents.send('serial:ports', serialPorts.map(mapPort)); };
+  win.webContents.session.on('select-serial-port', (event, portList, _wc, callback) => {
     event.preventDefault();
-    callback(portList.length ? portList[0].portId : '');
+    // Önceki bekleyen seçim varsa iptal et
+    if (serialCallback) { try { serialCallback(''); } catch { /* */ } }
+    serialCallback = callback;
+    serialPorts = portList.slice();
+    // Her zaman seçici göster (tarayıcıdaki gibi). Kullanıcı bir port seçer ya da iptal eder.
+    sendPorts();
   });
+  win.webContents.session.on('serial-port-added', (_e, port) => { serialPorts.push(port); sendPorts(); });
+  win.webContents.session.on('serial-port-removed', (_e, port) => { serialPorts = serialPorts.filter((p) => p.portId !== port.portId); sendPorts(); });
+  ipcMain.on('serial:choose', (_e, portId) => { if (serialCallback) { serialCallback(portId || ''); serialCallback = null; } });
+  ipcMain.on('serial:cancel', () => { if (serialCallback) { serialCallback(''); serialCallback = null; } });
+  // WebUSB (DFU): navigator.usb.requestDevice() -> ST DFU (VID 0x0483) tercih, yoksa ilk aygıt.
+  win.webContents.session.on('select-usb-device', (event, details, callback) => {
+    event.preventDefault();
+    const list = details.deviceList || [];
+    const st = list.find((d) => d.vendorId === 0x0483);
+    callback((st || list[0])?.deviceId);
+  });
+  ses.on('usb-device-added', () => {});
+  ses.on('usb-device-removed', () => {});
   win.setMenuBarVisibility(false);
   await win.loadURL(url);
 }

@@ -142,7 +142,7 @@ export function ParamCompareView({ gcs, params, setParams }: Props) {
   // Mevcut arac parametrelerini .param dosyasi olarak indir
   const exportCurrent = (): void => {
     if (!params.length) return;
-    const lines = ['# Web Mission Planner param dosyası'];
+    const lines = ['# Roost GCS param dosyası'];
     for (const p of [...params].sort((a, b) => a.name.localeCompare(b.name))) lines.push(p.name + ',' + fmt(p.value));
     const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);

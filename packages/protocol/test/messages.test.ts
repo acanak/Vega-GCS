@@ -5,6 +5,7 @@ import {
   MSG,
   decodeHeartbeat,
   decodeAttitude,
+  decodeNavControllerOutput,
   decodeCommandAck,
   encodeHeartbeat,
   encodeCommandLong,
@@ -93,6 +94,21 @@ describe('mesaj codec round-trip (cerceve -> parser -> decode)', () => {
     expect(a.roll).toBeCloseTo(0.5, 5);
     expect(a.pitch).toBeCloseTo(-0.25, 5);
     expect(a.yaw).toBeCloseTo(1.5, 5);
+  });
+
+  it('NAV_CONTROLLER_OUTPUT: nav_roll@0, nav_pitch@4 (flight director)', () => {
+    const p = new Uint8Array(26);
+    const dv = new DataView(p.buffer);
+    dv.setFloat32(0, 12.5, true);  // nav_roll (derece)
+    dv.setFloat32(4, -3.25, true); // nav_pitch
+    dv.setInt16(20, 90, true);     // nav_bearing
+    const frame = frameFor(MSG.NAV_CONTROLLER_OUTPUT, p, { seq: 0, sysid: 1, compid: 1 });
+    const [f] = new MavlinkParser(lookup).push(frame);
+    expect(f!.crcOk).toBe(true); // crc_extra 183 dogru mu
+    const n = decodeNavControllerOutput(f!.payload);
+    expect(n.navRoll).toBeCloseTo(12.5, 4);
+    expect(n.navPitch).toBeCloseTo(-3.25, 4);
+    expect(n.navBearing).toBe(90);
   });
 
   it('COMMAND_ACK cozer', () => {

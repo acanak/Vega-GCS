@@ -4,23 +4,17 @@ import { useT } from '../gcs/i18n';
 export function PwaBadge() {
   const t = useT();
   const {
-    offlineReady: [offlineReady, setOfflineReady],
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW();
 
-  if (!offlineReady && !needRefresh) return null;
+  // "Çevrimdışı kullanıma hazır" bildirimi gösterilmez; yalnızca güncelleme uyarısı.
+  if (!needRefresh) return null;
   return (
     <div className="pwa-badge">
-      {needRefresh ? (
-        <>
-          <span>{t('Yeni sürüm var')}</span>
-          <button className="btn-primary" onClick={() => void updateServiceWorker(true)}>{t('Yenile')}</button>
-        </>
-      ) : (
-        <span>{t('Çevrimdışı kullanıma hazır ✓')}</span>
-      )}
-      <button className="pwa-x" onClick={() => { setOfflineReady(false); setNeedRefresh(false); }} aria-label={t('Kapat')}>×</button>
+      <span>{t('Yeni sürüm var')}</span>
+      <button className="btn-primary" onClick={() => void updateServiceWorker(true)}>{t('Yenile')}</button>
+      <button className="pwa-x" onClick={() => setNeedRefresh(false)} aria-label={t('Kapat')}>×</button>
     </div>
   );
 }

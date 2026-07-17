@@ -76,11 +76,13 @@ export function Hud({ connRef }: { connRef: { current: GcsConnection | null } })
       const rawTrend = ((st.airspeed - prevAs) / Math.max(dt, 1e-3)) * 6;
       st.trendSpeed = lerp(st.trendSpeed, rawTrend, 0.08);
 
+      // Flight director: otopilotun GERÇEK komutu (NAV_CONTROLLER_OUTPUT). Yalnızca ARM'lı ve
+      // geçerli nav çıktısı varken gösterilir (disarmed/manuel modda gizli).
       let fdRoll = NaN;
       let fdPitch = NaN;
-      if (connected && st.captured) {
-        fdRoll = clamp(shortest(st.selHdg - st.heading) * 0.5, -25, 25) * DEG;
-        fdPitch = clamp((st.selAlt - st.altitude) * 0.4, -12, 12) * DEG;
+      if (connected && t?.armed && t.nav.valid) {
+        fdRoll = clamp(t.nav.roll, -35, 35) * DEG;   // derece -> rad
+        fdPitch = clamp(t.nav.pitch, -25, 25) * DEG;
       }
 
       const intro = st.introStart < 0 ? 1 : Math.min(1, (now - st.introStart) / 900);
