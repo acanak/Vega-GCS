@@ -2,7 +2,7 @@
 # `npx wrangler deploy` bunu okur; monorepo kökünde hangi projeyi/klasörü
 # yükleyeceğini bilir (aksi halde "root of a workspace" hatası verir).
 # name, Cloudflare panelindeki proje adıyla AYNI olmalı.
-name = "vega"
+name = "vega-gcs"
 compatibility_date = "2024-11-01"
 
 [assets]
