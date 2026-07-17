@@ -1,0 +1,25 @@
+{
+  "name": "web-mission-planner",
+  "version": "0.0.0",
+  "private": true,
+  "description": "ArduPilot Mission Planner'in web (tarayici) versiyonu - bkz. PLAN.md",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "bash scripts/dev.sh",
+    "bridge": "bash scripts/bridge.sh",
+    "bridge:tcp": "MODE=tcp TCP_PORT=5760 bash scripts/bridge.sh",
+    "bridge:udp": "MODE=udp UDP_PORT=14550 bash scripts/bridge.sh",
+    "sitl": "bash scripts/sitl.sh",
+    "dev:sitl": "bash scripts/dev-sitl.sh",
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "generate:dialect": "node tools/mavgen/generate.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.9"
+  }
+}

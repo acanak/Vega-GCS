@@ -1,0 +1,10 @@
+{
+  "name": "@wmp/dev-bridge",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Gelistirme koprusu: SITL/UDP/TCP MAVLink <-> WebSocket",
+  "bin": { "wmp-bridge": "./bridge.mjs" },
+  "scripts": { "start": "node bridge.mjs" },
+  "dependencies": { "ws": "^8.18.0" }
+}

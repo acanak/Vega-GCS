@@ -1,0 +1,16 @@
+services:
+  ardupilot-plane:
+    build: .
+    container_name: ardupilot-plane-sitl
+    ports:
+      - "5760:5760"   # MAVLink TCP - Mission Planner / QGroundControl buraya bağlanır
+      - "5762:5762"
+      - "5763:5763"
+    stdin_open: true
+    tty: true
+    # İlk çalıştırmada firmware derlenir; sonraki çalıştırmalar için cache
+    volumes:
+      - ardupilot-build:/home/ardupilot/ardupilot/build
+
+volumes:
+  ardupilot-build:

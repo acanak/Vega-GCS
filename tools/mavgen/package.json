@@ -1,0 +1,9 @@
+{
+  "name": "@wmp/mavgen",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MAVLink XML diyalektinden TS dialect (crc_extra + mesaj tablosu) uretir",
+  "scripts": { "generate": "node generate.mjs" },
+  "devDependencies": { "fast-xml-parser": "^4.5.0" }
+}
