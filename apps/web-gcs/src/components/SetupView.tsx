@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { ParamEntry, VehicleTelemetry } from '@wmp/protocol';
 import type { UseGcs } from '../gcs/useGcs';
-import { useT } from '../gcs/i18n';
+import { useT, useI18n } from '../gcs/i18n';
+import { SETUP_HELP } from '../gcs/setup-help';
 import { ParamsView } from './ParamsView';
 import { FirmwareView } from './FirmwareView';
 import { AccelCalView } from './AccelCalView';
@@ -40,7 +41,9 @@ interface Props {
 
 export function SetupView({ gcs, params, setParams, telemetry }: Props) {
   const t = useT();
+  const { lang } = useI18n();
   const [section, setSection] = useState<Section>('firmware');
+  const help = SETUP_HELP[section]?.[lang] ?? SETUP_HELP[section]?.en;
   return (
     <main className="setup">
       <nav className="setup-nav">
@@ -73,6 +76,18 @@ export function SetupView({ gcs, params, setParams, telemetry }: Props) {
         {section === 'serial' && <SerialPortsView gcs={gcs} params={params} setParams={setParams} />}
         {section === 'osd' && <OSDView gcs={gcs} params={params} setParams={setParams} />}
       </div>
+      {help && (
+        <aside className="setup-help">
+          <div className="setup-help-hd">{t('İpucu')}</div>
+          <h3 className="setup-help-title">{help.title}</h3>
+          <p className="setup-help-body">{help.body}</p>
+          {help.tips.length > 0 && (
+            <ul className="setup-help-tips">
+              {help.tips.map((tp, i) => <li key={i}>{tp}</li>)}
+            </ul>
+          )}
+        </aside>
+      )}
     </main>
   );
 }

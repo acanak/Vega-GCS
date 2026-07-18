@@ -350,7 +350,14 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .tree-count { color: var(--ink-faint); font-size: 10px; }
 
 /* ---- Kurulum ---- */
-.setup { display: grid; grid-template-columns: 160px 1fr; gap: 12px; padding: 12px; flex: 1; min-height: 0; }
+.setup { display: grid; grid-template-columns: 160px 1fr minmax(240px, 300px); gap: 12px; padding: 12px; flex: 1; min-height: 0; }
+.setup-help { min-height: 0; overflow: auto; border-left: 1px solid var(--line-soft); padding-left: 14px; }
+.setup-help-hd { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--data); margin-bottom: 8px; }
+.setup-help-title { margin: 0 0 8px; font-size: 15px; font-weight: 700; }
+.setup-help-body { margin: 0 0 12px; font-size: 12.5px; line-height: 1.55; color: var(--ink-dim); }
+.setup-help-tips { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 6px; }
+.setup-help-tips li { font-size: 12px; line-height: 1.45; color: var(--ink-dim); }
+@media (max-width: 1080px) { .setup { grid-template-columns: 160px 1fr; } .setup-help { display: none; } }
 .setup-nav { display: flex; flex-direction: column; gap: 4px; height: 100%; }
 .setup-nav-group { display: flex; flex-direction: column; gap: 4px; }
 .setup-nav-hd { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); padding: 10px 12px 2px; }

@@ -81,6 +81,7 @@ export const DE: Record<string, string> = {
   "Ayar": "Tuning",
   "Canlı PWM": "Live-PWM",
   "kapsama": "Abdeckung",
+  "İpucu": "Hinweis",
   "Aracı her eksende yavaşça çevirin — noktalar küreyi doldurdukça kırmızıdan yeşile döner. Kırmızı bölgeler henüz taranmadı. %100 olunca sonucu Kabul edin.": "Drehen Sie das Fahrzeug langsam um alle Achsen — die Punkte füllen die Kugel und wechseln von Rot zu Grün. Rote Bereiche sind noch nicht erfasst. Bei 100% auf Übernehmen tippen.",
   "Mod kanalı": "Moduskanal",
   "Mod kanalını (FLTMODE_CH) seçin; vericide anahtarı oynatınca aktif pozisyon vurgulanır. Her pozisyonun yanında beklenen PWM aralığı yazılıdır.": "Moduskanal (FLTMODE_CH) wählen; Schalter am Sender bewegen — die aktive Position wird hervorgehoben. Der erwartete PWM-Bereich steht neben jeder Position.",
