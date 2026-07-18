@@ -80,6 +80,8 @@ export const EN: Record<string, string> = {
   "Manifest alınamadı:": "Couldn't load manifest:",
   "Ayar": "Tuning",
   "Canlı PWM": "Live PWM",
+  "kapsama": "coverage",
+  "Aracı her eksende yavaşça çevirin — noktalar küreyi doldurdukça kırmızıdan yeşile döner. Kırmızı bölgeler henüz taranmadı. %100 olunca sonucu Kabul edin.": "Slowly turn the vehicle on every axis — points fill the sphere and go from red to green. Red areas aren't sampled yet. At 100% press Accept.",
   "Mod kanalı": "Mode channel",
   "Mod kanalını (FLTMODE_CH) seçin; vericide anahtarı oynatınca aktif pozisyon vurgulanır. Her pozisyonun yanında beklenen PWM aralığı yazılıdır.": "Pick the mode channel (FLTMODE_CH); move the switch on your transmitter and the active position is highlighted. The expected PWM range is shown next to each position.",
   "Git": "Go",

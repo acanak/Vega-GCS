@@ -417,6 +417,10 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .setup-log { border-top: 1px solid var(--line-soft); padding-top: 8px; }
 .setup-log-hd { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 4px; }
 .setup-log-line { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); padding: 1px 0; }
+.mag-cloud { position: relative; width: 100%; height: 340px; border: 1px solid var(--line); border-radius: 10px; background: radial-gradient(circle at 50% 44%, rgba(37,212,255,0.06), transparent 68%), var(--panel-2); overflow: hidden; touch-action: none; }
+.mag-cloud canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+.mag-cloud canvas:active { cursor: grabbing; }
+.mag-cloud-note { position: absolute; top: 8px; left: 10px; font: 11px var(--mono); color: var(--warn); }
 .mag-row { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--panel); }
 .mag-hd { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; margin-bottom: 6px; }
 .mag-status { font-size: 11px; }
