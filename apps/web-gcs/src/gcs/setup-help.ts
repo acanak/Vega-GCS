@@ -74,6 +74,31 @@ export const SETUP_HELP: Record<string, Record<Lang, HelpEntry>> = {
     en: { title: 'OSD', body: 'On-screen display layout (analog + HD MSP DisplayPort). Lets you see telemetry over your FPV feed.', tips: ['Enable OSD_TYPE.', 'For HD set the SERIAL to DisplayPort (42).', 'Drag elements; mind the goggle-safe zones.'] },
     de: { title: 'OSD', body: 'Bildschirmanzeige-Layout (analog + HD MSP DisplayPort). Zeigt Telemetrie über dem FPV-Bild.', tips: ['OSD_TYPE aktivieren.', 'Für HD das SERIAL auf DisplayPort (42) setzen.', 'Elemente ziehen; Brillen-Sicherzonen beachten.'] },
   },
+  gps: {
+    tr: { title: 'GPS', body: 'GPS alıcı tipi, ikinci GPS, otomatik seçim/blend ve öncelik. Doğru konum ve çift-GPS yedekliliği için.', tips: ['Çoğu alıcı için AUTO ya da uBlox.', 'İki GPS varsa “Blend” ikisini birleştirir.', 'Her iki GPS_TYPE’ı da ayarlayın.'] },
+    en: { title: 'GPS', body: 'GPS receiver type, second GPS, auto-switch/blend and priority. For accurate position and dual-GPS redundancy.', tips: ['AUTO or uBlox for most receivers.', 'With two GPS, “Blend” fuses both.', 'Set both GPS types.'] },
+    de: { title: 'GPS', body: 'GPS-Empfängertyp, zweites GPS, Auto-Umschaltung/Blend und Priorität. Für genaue Position und GPS-Redundanz.', tips: ['AUTO oder uBlox für die meisten Empfänger.', 'Mit zwei GPS fusioniert „Blend“ beide.', 'Beide GPS-Typen setzen.'] },
+  },
+  gimbal: {
+    tr: { title: 'Gimbal / Kamera', body: 'Gimbal tipi, varsayılan mod ve eksen limitleri + kamera tetik tipi. Stabilize kamera nişanı ve fotoğraf tetiği için.', tips: ['MNT1_TYPE’ı gimbalınıza göre seçin.', 'Çubukla nişan için “RC Targeting”.', 'Roll/Pitch/Yaw limitlerini ayarlayın.'] },
+    en: { title: 'Gimbal / Camera', body: 'Gimbal type, default mode and axis limits + camera trigger. For a stabilized camera aim and photo triggering.', tips: ['Set MNT1_TYPE to your gimbal.', 'Use “RC Targeting” to aim with sticks.', 'Set roll/pitch/yaw limits.'] },
+    de: { title: 'Gimbal / Kamera', body: 'Gimbal-Typ, Standardmodus und Achslimits + Kameraauslöser. Für stabilisiertes Kameraziel und Foto-Auslösung.', tips: ['MNT1_TYPE auf Ihr Gimbal setzen.', '„RC Targeting“ zum Zielen mit Knüppeln.', 'Roll-/Pitch-/Yaw-Limits setzen.'] },
+  },
+  flow: {
+    tr: { title: 'Optik Akış', body: 'GPS’siz konum tutuşu için optik akış sensörü, yönelimi ve konumu. İç mekan/alçak irtifada işe yarar.', tips: ['Bir mesafe sensörü (rangefinder) gerekir.', 'FLOW_TYPE’ı sensörünüze göre seçin.', 'Uçuşta ölçek katsayılarını kalibre edin.'] },
+    en: { title: 'Optical flow', body: 'Optical-flow sensor, orientation and position for GPS-denied position hold. Useful indoors/at low altitude.', tips: ['A rangefinder is required.', 'Set FLOW_TYPE to your sensor.', 'Calibrate the scalers in flight.'] },
+    de: { title: 'Optischer Fluss', body: 'Optical-Flow-Sensor, Ausrichtung und Position für GPS-freies Positionshalten. Nützlich in Innenräumen/niedriger Höhe.', tips: ['Ein Rangefinder ist erforderlich.', 'FLOW_TYPE auf Ihren Sensor setzen.', 'Skalierer im Flug kalibrieren.'] },
+  },
+  adsb: {
+    tr: { title: 'ADS-B', body: 'ADS-B alıcı tipi ve çarpışma önleme (avoidance). İnsanlı trafiği görüp kaçınmak için.', tips: ['ADSB_TYPE’ı alıcınıza göre ayarlayın.', 'Otomatik kaçınma için AVD’yi etkinleştirin.', 'Kaçınma mesafelerini ayarlayın.'] },
+    en: { title: 'ADS-B', body: 'ADS-B receiver type and collision avoidance. To see and avoid manned traffic.', tips: ['Set ADSB_TYPE to your receiver.', 'Enable AVD for automatic avoidance.', 'Set the avoidance distances.'] },
+    de: { title: 'ADS-B', body: 'ADS-B-Empfängertyp und Kollisionsvermeidung. Um bemannten Verkehr zu erkennen und auszuweichen.', tips: ['ADSB_TYPE auf Ihren Empfänger setzen.', 'AVD für automatisches Ausweichen aktivieren.', 'Ausweichabstände setzen.'] },
+  },
+  sik: {
+    tr: { title: 'SiK telemetri radyo', body: 'SiK radyo linkinin canlı sinyal/gürültü kalitesi. Uzağa uçmadan önce link sağlığını kontrol edin.', tips: ['RSSI ile gürültü farkı yüksekse link iyidir.', 'Antenleri dik ve birbirine paralel tutun.', 'Güç/air-speed radyo aracından ayarlanır.'] },
+    en: { title: 'SiK telemetry radio', body: 'Live signal/noise quality of the SiK radio link. Check link health before flying far.', tips: ['A high RSSI-minus-noise margin means a good link.', 'Keep antennas vertical and parallel.', 'Set power/air-speed in the radio tool.'] },
+    de: { title: 'SiK-Telemetriefunk', body: 'Live Signal-/Rauschqualität der SiK-Funkverbindung. Vor weiten Flügen die Linkqualität prüfen.', tips: ['Hoher RSSI-minus-Rausch-Abstand = gute Verbindung.', 'Antennen senkrecht und parallel halten.', 'Leistung/Air-Speed im Funk-Tool setzen.'] },
+  },
   params: {
     tr: { title: 'Parametreler', body: 'Otopilotun tüm parametreleri: arama, düzenleme, .param kaydet/yükle ve dosya-araç karşılaştırma. İnce ayar ve yedekleme için.', tips: ['Önce parametreleri indirin.', 'Değişiklik öncesi yedek alın (.param).', 'Bir dosyayı seçili şekilde uygulamak için Karşılaştır’ı kullanın.'] },
     en: { title: 'Parameters', body: 'Every autopilot parameter: search, edit, save/load .param, and compare a file against the vehicle. For fine tuning and backups.', tips: ['Download the parameters first.', 'Back up (.param) before changing.', 'Use Compare to selectively apply a saved file.'] },

@@ -357,6 +357,24 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .setup-help-body { margin: 0 0 12px; font-size: 12.5px; line-height: 1.55; color: var(--ink-dim); }
 .setup-help-tips { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 6px; }
 .setup-help-tips li { font-size: 12px; line-height: 1.45; color: var(--ink-dim); }
+/* Jenerik param-config ekranı (GPS/Gimbal/ADSB/Flow) */
+.cfg-grid { display: flex; flex-direction: column; gap: 8px; }
+.cfg-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); }
+.cfg-label { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.cfg-name { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); }
+.cfg-num { display: inline-flex; align-items: center; gap: 6px; }
+.cfg-num input { width: 110px; text-align: right; }
+.cfg-row select { min-width: 200px; }
+/* SiK radyo monitörü */
+.sik-grid { display: flex; flex-direction: column; gap: 12px; }
+.sik-metric-hd { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+.sik-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; color: var(--ink-dim); }
+/* Servo/motor test */
+.servo-warn { color: var(--warn); font-size: 12px; font-weight: 700; padding: 8px 10px; border: 1px solid var(--warn); border-radius: 8px; margin-bottom: 8px; background: rgba(255,80,80,0.06); }
+.servo-test-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; }
+.servo-motor-test { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+.servo-mt-row { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+.servo-mt-row label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--ink-dim); }
 @media (max-width: 1080px) { .setup { grid-template-columns: 160px 1fr; } .setup-help { display: none; } }
 .setup-nav { display: flex; flex-direction: column; gap: 4px; height: 100%; }
 .setup-nav-group { display: flex; flex-direction: column; gap: 4px; }
