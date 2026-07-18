@@ -20,16 +20,26 @@ import { SerialPortsView } from './SerialPortsView';
 import { OSDView } from './OSDView';
 
 type Section = 'params' | 'firmware' | 'accel' | 'compass' | 'radio' | 'rc' | 'servo' | 'plane' | 'battery' | 'tune' | 'tecs' | 'modes' | 'failsafe' | 'serial' | 'osd';
-// Menü grupları: Kurulum ve Ayar (Tune) ayrı gruplar; Parametreler en altta.
-const GROUPS: Array<[string, Array<[Section, string]>]> = [
-  ['Kurulum', [
-    ['firmware', 'Firmware'], ['accel', 'İvmeölçer'], ['compass', 'Pusula'], ['radio', 'Radyo'],
-    ['rc', 'Alıcı'], ['servo', 'Servo Çıkış'], ['plane', 'Airframe'], ['battery', 'Pil / Güç'],
-    ['modes', 'Uçuş Modları'], ['failsafe', 'Failsafe'], ['serial', 'Seri Portlar'], ['osd', 'OSD'],
-  ]],
-  ['Ayar', [
+// Menü, aracı sıfırdan yapılandırma sırasına göre (ground-up) düzenlidir:
+// Temel kurulum (sıralı, numaralı adımlar) -> Donanım -> Ayar -> (en altta) Parametreler.
+const GROUPS: Array<{ title: string; numbered?: boolean; items: Array<[Section, string]> }> = [
+  { title: 'Temel kurulum', numbered: true, items: [
+    ['firmware', 'Firmware'],       // 1 — önce yazılım
+    ['plane', 'Airframe'],          // 2 — çerçeve / uçak tipi
+    ['rc', 'Alıcı'],                // 3 — alıcı protokolü
+    ['radio', 'Radyo'],             // 4 — RC kalibrasyonu
+    ['servo', 'Servo Çıkış'],       // 5 — çıkış eşleme
+    ['accel', 'İvmeölçer'],         // 6 — ivmeölçer
+    ['compass', 'Pusula'],          // 7 — pusula
+    ['modes', 'Uçuş Modları'],      // 8 — uçuş modları
+    ['failsafe', 'Failsafe'],       // 9 — güvenlik
+  ] },
+  { title: 'Donanım', items: [
+    ['battery', 'Pil / Güç'], ['serial', 'Seri Portlar'], ['osd', 'OSD'],
+  ] },
+  { title: 'Ayar', items: [
     ['tune', 'PID Ayar'], ['tecs', 'TECS (Uçak)'],
-  ]],
+  ] },
 ];
 
 interface Props {
@@ -47,11 +57,13 @@ export function SetupView({ gcs, params, setParams, telemetry }: Props) {
   return (
     <main className="setup">
       <nav className="setup-nav">
-        {GROUPS.map(([title, items]) => (
-          <div className="setup-nav-group" key={title}>
-            <div className="setup-nav-hd">{t(title)}</div>
-            {items.map(([id, label]) => (
-              <button key={id} className={section === id ? 'active' : ''} onClick={() => setSection(id)}>{t(label)}</button>
+        {GROUPS.map((g) => (
+          <div className="setup-nav-group" key={g.title}>
+            <div className="setup-nav-hd">{t(g.title)}</div>
+            {g.items.map(([id, label], idx) => (
+              <button key={id} className={section === id ? 'active' : ''} onClick={() => setSection(id)}>
+                {g.numbered && <span className="setup-nav-step">{idx + 1}</span>}{t(label)}
+              </button>
             ))}
           </div>
         ))}

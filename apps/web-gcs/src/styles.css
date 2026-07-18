@@ -361,6 +361,8 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .setup-nav { display: flex; flex-direction: column; gap: 4px; height: 100%; }
 .setup-nav-group { display: flex; flex-direction: column; gap: 4px; }
 .setup-nav-hd { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); padding: 10px 12px 2px; }
+.setup-nav-step { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-right: 7px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); font: 700 9px var(--mono); color: var(--ink-faint); }
+.setup-nav button.active .setup-nav-step { background: var(--data); color: #04110f; border-color: var(--data); }
 .setup-nav-bottom { margin-top: auto; padding-top: 8px; border-top: 1px solid var(--line-soft); }
 .setup-nav button { text-align: left; background: transparent; border: 1px solid transparent; color: var(--ink-dim); border-radius: 8px; padding: 9px 12px; font-family: var(--mono); font-size: 12px; }
 .setup-nav button.active { background: var(--panel-2); color: var(--ink); border-color: var(--line); }
