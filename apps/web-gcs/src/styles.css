@@ -392,7 +392,7 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .setup-nav button { text-align: left; background: transparent; border: 1px solid transparent; color: var(--ink-dim); border-radius: 8px; padding: 9px 12px; font-family: var(--mono); font-size: 12px; }
 .setup-nav button.active { background: var(--panel-2); color: var(--ink); border-color: var(--line); }
 .setup-content { min-height: 0; overflow: auto; }
-.setup-panel { max-width: 760px; }
+.setup-panel { max-width: 760px; display: flex; flex-direction: column; gap: 14px; }
 .setup-body { display: flex; flex-direction: column; gap: 14px; }
 .setup-desc { color: var(--ink-dim); font-size: 13px; margin: 0; }
 .setup-actions { display: flex; gap: 8px; flex-wrap: wrap; }
