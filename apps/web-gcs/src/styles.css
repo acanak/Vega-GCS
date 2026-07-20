@@ -56,6 +56,13 @@ body {
   box-shadow: 0 0 12px rgba(70,224,208,0.25) inset;
 }
 .brand small { color: var(--ink-faint); letter-spacing: 0.1em; font-weight: 600; }
+.beta-badge {
+  margin-left: 8px; padding: 1px 6px; border-radius: 5px;
+  font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  color: #ffcf5a; background: rgba(255,183,3,0.14); border: 1px solid rgba(255,183,3,0.45);
+  vertical-align: middle; text-transform: uppercase; line-height: 1.4;
+}
+.about-title .beta-badge { font-size: 10px; }
 
 /* ---- Baglanti bari ---- */
 .connbar { display: flex; align-items: center; gap: 10px; margin-left: auto; }
@@ -783,6 +790,7 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .about-mark { font-size: 26px; color: var(--data); }
 .about-title { font-weight: 800; font-size: 18px; letter-spacing: 0.02em; }
 .about-ver { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+.about-build { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); word-break: break-all; margin-top: -6px; }
 .about-desc { margin: 0; font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
 .about-sec { display: flex; flex-direction: column; gap: 6px; }
 .about-sec-hd { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }

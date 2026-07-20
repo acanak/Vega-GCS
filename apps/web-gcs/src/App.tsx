@@ -12,6 +12,7 @@ import { SerialPortPicker } from './components/SerialPortPicker';
 import { SettingsMenu } from './components/SettingsMenu';
 import { LangSwitch } from './components/LangSwitch';
 import { AboutModal } from './components/AboutModal';
+import { CHANNEL } from './gcs/version';
 import { SupportModal } from './components/SupportModal';
 import { SetupView } from './components/SetupView';
 import { LogView } from './components/LogView';
@@ -51,7 +52,7 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand"><span className="brand-mark">◈</span> VEGA GCS</div>
+        <div className="brand"><span className="brand-mark">◈</span> VEGA GCS{CHANNEL && <span className="beta-badge" title={t('Ön-yayın sürümü')}>{CHANNEL}</span>}</div>
         <nav className="viewnav">
           <button className={view === 'flight' ? 'active' : ''} onClick={() => setView('flight')}>{t('Uçuş Verisi')}</button>
           <button className={view === 'status' ? 'active' : ''} onClick={() => setView('status')}>{t('Durum')}</button>

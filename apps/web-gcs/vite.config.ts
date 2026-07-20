@@ -2,8 +2,27 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import cesium from 'vite-plugin-cesium';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+
+// Sürüm bilgisini build sırasında sabitle: hangi commit'in yayınlandığını UI'dan doğrulamak için.
+const pkgVersion = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version as string;
+function gitSha(): string {
+  try { return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); }
+  catch { return 'nogit'; }
+}
+const BUILD = {
+  version: pkgVersion,
+  sha: gitSha(),
+  time: new Date().toISOString(),
+};
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(BUILD.version),
+    __GIT_SHA__: JSON.stringify(BUILD.sha),
+    __BUILD_TIME__: JSON.stringify(BUILD.time),
+  },
   plugins: [
     react(),
     cesium(),

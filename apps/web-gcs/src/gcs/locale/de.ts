@@ -341,6 +341,8 @@ export const DE: Record<string, string> = {
   "Bağış / Sponsor": "Spenden / Sponsor",
   "ArduPilot için tarayıcı tabanlı yer kontrol istasyonu — uçak / kopter / rover.": "Browser-basierte Bodenkontrollstation für ArduPilot — Flugzeug / Copter / Rover.",
   "AGPL-3.0 lisansı ile lisanslanmıştır.": "Lizenziert unter AGPL-3.0.",
+  "Yayınlanan yapının kimliği (sürüm · commit · zaman)": "Kennung des veröffentlichten Builds (Version · Commit · Zeit)",
+  "Ön-yayın sürümü": "Vorab-Version",
   "Farklı": "Unterschiedlich",
   "Aynı": "Gleich",
   "Yalnızca dosyada": "Nur in Datei",
