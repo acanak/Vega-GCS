@@ -23,6 +23,7 @@ const REQ_DNLOAD = 1;
 const REQ_GETSTATUS = 3;
 const REQ_CLRSTATUS = 4;
 // const REQ_ABORT = 6;
+const STATE_dfuDNBUSY = 4;      // cihaz yazıyor/siliyor — bwPollTimeout kadar beklenmeli
 const STATE_dfuERROR = 10;
 const DEFAULT_XFER = 2048;
 const DEFAULT_ADDR = 0x08000000;
@@ -77,13 +78,26 @@ async function getStatus(dev: UsbDevice, iface: number): Promise<DfuStatus> {
   return { status: d.getUint8(0), poll: d.getUint8(1) | (d.getUint8(2) << 8) | (d.getUint8(3) << 16), state: d.getUint8(4) };
 }
 
+// Bir DNLOAD'ın tamamlanmasını bekle. İlk GETSTATUS komutu tetikler ve dfuDNBUSY +
+// bwPollTimeout döndürür; poll süresi geçmeden tekrar sorgulamak cihazı NAK'a sokar ve
+// WebUSB kontrol transferi süresiz kilitlenir. Bu yüzden ÖNCE bekle, SONRA yeniden sorgula;
+// dfuDNBUSY'den çıkana (idle) kadar tekrarla.
+async function completeDownload(dev: UsbDevice, iface: number): Promise<DfuStatus> {
+  let s = await getStatus(dev, iface); // komutu/yazımı tetikler → dfuDNBUSY
+  let guard = 0;
+  while (s.state === STATE_dfuDNBUSY) {
+    await sleep(s.poll || 1);
+    s = await getStatus(dev, iface);
+    if (++guard > 200000) throw new Error('DFU: DNBUSY zaman aşımı (cihaz yanıt vermiyor)');
+  }
+  if (s.state === STATE_dfuERROR) throw new Error('DfuSe hatası (status ' + s.status + ', state ' + s.state + ')');
+  return s;
+}
+
 // DNLOAD wValue=0 ile DfuSe komutu gönder ve tamamlanmasını bekle.
 async function dfuseCmd(dev: UsbDevice, iface: number, bytes: Uint8Array): Promise<void> {
   await ctrlOut(dev, iface, REQ_DNLOAD, 0, bytes);
-  let s = await getStatus(dev, iface); // komutu tetikler (dfuDNBUSY)
-  if (s.poll) await sleep(s.poll);
-  s = await getStatus(dev, iface);
-  if (s.state === STATE_dfuERROR) throw new Error('DfuSe komut hatası (status ' + s.status + ')');
+  await completeDownload(dev, iface);
 }
 
 function addrCmd(op: number, addr: number): Uint8Array {
@@ -119,9 +133,9 @@ export async function flashDfu(dev: UsbDevice, image: Uint8Array, opts: DfuOptio
     while (off < total) {
       const chunk = image.subarray(off, Math.min(off + xfer, total));
       await ctrlOut(dev, iface, REQ_DNLOAD, block, chunk);
-      s = await getStatus(dev, iface); // yazımı tetikler/bekler
-      if (s.poll) await sleep(s.poll);
-      if (s.state === STATE_dfuERROR) throw new Error('DFU yazma hatası @0x' + (base + off).toString(16));
+      // Cihaz bloğu yazana kadar bekle (dfuDNBUSY → dfuDNLOAD-IDLE). Beklemeden bir
+      // sonraki DNLOAD'ı göndermek NAK'a → süresiz kilitlenmeye yol açar.
+      await completeDownload(dev, iface);
       off += chunk.length;
       block++;
       opts.onProgress?.(off, total);
