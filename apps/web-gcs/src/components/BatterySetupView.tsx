@@ -3,6 +3,7 @@ import type { ParamEntry, VehicleTelemetry } from '@wmp/protocol';
 import type { UseGcs } from '../gcs/useGcs';
 import { BATT_MONITOR_OPTIONS } from '../gcs/ardupilot-sys';
 import { useT } from '../gcs/i18n';
+import { ParamRefreshNote } from './ParamRefresh';
 
 const num = (v: string): number => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
 
@@ -44,65 +45,62 @@ export function BatterySetupView({ gcs, params, setParams, telemetry }: {
     ['BATT_CAPACITY', 'Kapasite (mAh)'], ['BATT_LOW_VOLT', 'Düşük voltaj eşiği (V)'], ['BATT_CRT_VOLT', 'Kritik voltaj eşiği (V)'],
     ['BATT_VOLT_MULT', 'Voltaj çarpanı'], ['BATT_AMP_PERVLT', 'Akım (A/V)'], ['BATT_AMP_OFFSET', 'Akım ofset (V)'],
   ];
-  const present = fields.filter(([n]) => pget(n));
+  const anyMissing = !monitor || fields.some(([n]) => !pget(n));
 
   return (
     <div className="setup-panel">
       <div className="card">
         <div className="card-hd"><h2>{t('Pil / güç')}</h2>{!connected && <span className="hd-note">{t('bağlı değil')}</span>}</div>
         <div className="card-body rc-input">
-          {!monitor && present.length === 0 ? (
-            <div className="empty">{t('BATT parametreleri yok — Parametreler sekmesinden indirin')}</div>
-          ) : (
-            <>
-              {monitor && (
-                <section className="rc-sec">
-                  <div className="rc-sec-hd">{t('Monitör tipi')} (BATT_MONITOR)</div>
-                  <select disabled={!connected} value={monVal} onChange={(e) => write('BATT_MONITOR', Number(e.target.value))}>
-                    {!monKnown && <option value={monVal}>{t('Diğer')} ({monVal})</option>}
-                    {BATT_MONITOR_OPTIONS.map((o) => <option key={o.code} value={o.code}>{o.code} · {o.label}</option>)}
-                  </select>
-                  <p className="setup-desc">{t('Değişiklik yeniden başlatma gerektirebilir.')}</p>
-                </section>
-              )}
+          <section className="rc-sec">
+            <div className="rc-sec-hd">{t('Monitör tipi')} (BATT_MONITOR)</div>
+            <select disabled={!connected || !monitor} value={monitor ? monVal : ''} onChange={(e) => write('BATT_MONITOR', Number(e.target.value))}>
+              {!monitor && <option value="">—</option>}
+              {monitor && !monKnown && <option value={monVal}>{t('Diğer')} ({monVal})</option>}
+              {BATT_MONITOR_OPTIONS.map((o) => <option key={o.code} value={o.code}>{o.code} · {o.label}</option>)}
+            </select>
+            <p className="setup-desc">{t('Değişiklik yeniden başlatma gerektirebilir.')}</p>
+          </section>
 
-              <section className="rc-sec">
-                <div className="rc-sec-hd">{t('Canlı okuma')}</div>
-                <div className="batt-live">
-                  <span className="bl-item"><b>{Number.isFinite(reported) ? reported.toFixed(2) : '—'}</b> V</span>
-                  <span className="bl-item"><b>{telemetry && telemetry.battery.current >= 0 ? telemetry.battery.current.toFixed(1) : '—'}</b> A</span>
-                  <span className="bl-item"><b>{telemetry && telemetry.battery.remaining >= 0 ? Math.round(telemetry.battery.remaining) : '—'}</b> %</span>
-                </div>
-              </section>
+          <section className="rc-sec">
+            <div className="rc-sec-hd">{t('Canlı okuma')}</div>
+            <div className="batt-live">
+              <span className="bl-item"><b>{Number.isFinite(reported) ? reported.toFixed(2) : '—'}</b> V</span>
+              <span className="bl-item"><b>{telemetry && telemetry.battery.current >= 0 ? telemetry.battery.current.toFixed(1) : '—'}</b> A</span>
+              <span className="bl-item"><b>{telemetry && telemetry.battery.remaining >= 0 ? Math.round(telemetry.battery.remaining) : '—'}</b> %</span>
+            </div>
+          </section>
 
-              {multParam && (
-                <section className="rc-sec">
-                  <div className="rc-sec-hd">{t('Voltaj kalibrasyonu')}</div>
-                  <p className="setup-desc">{t('Multimetreyle ölçtüğünüz gerçek voltajı girin; BATT_VOLT_MULT otomatik hesaplanır.')}</p>
-                  <div className="act-row">
-                    <input className="act-num" type="number" placeholder={t('ölçülen V')} disabled={!connected} value={measured} onChange={(e) => setMeasured(e.target.value)} style={{ width: 110 }} />
-                    <button className="btn-primary" disabled={!connected} onClick={calibrateVoltage}>{t('Voltajı kalibre et')}</button>
-                  </div>
-                </section>
-              )}
+          <section className="rc-sec">
+            <div className="rc-sec-hd">{t('Voltaj kalibrasyonu')}</div>
+            <p className="setup-desc">{t('Multimetreyle ölçtüğünüz gerçek voltajı girin; BATT_VOLT_MULT otomatik hesaplanır.')}</p>
+            <div className="act-row">
+              <input className="act-num" type="number" placeholder={t('ölçülen V')} disabled={!connected || !multParam} value={measured} onChange={(e) => setMeasured(e.target.value)} style={{ width: 110 }} />
+              <button className="btn-primary" disabled={!connected || !multParam} onClick={calibrateVoltage}>{t('Voltajı kalibre et')}</button>
+            </div>
+          </section>
 
-              {present.length > 0 && (
-                <section className="rc-sec">
-                  <div className="rc-sec-hd">{t('Ayarlar')}</div>
-                  <div className="chk-grid">
-                    {present.map(([name, label]) => (
-                      <label key={name} className="chk plane-fp">
-                        <span>{t(label)}</span>
-                        <input disabled={!connected} value={pget(name)?.value ?? 0} onChange={(e) => write(name, num(e.target.value))} />
-                      </label>
-                    ))}
-                  </div>
-                </section>
-              )}
+          <section className="rc-sec">
+            <div className="rc-sec-hd">{t('Ayarlar')}</div>
+            <div className="chk-grid">
+              {fields.map(([name, label]) => {
+                const e = pget(name);
+                return (
+                  <label key={name} className={'chk plane-fp' + (e ? '' : ' missing')} title={name}>
+                    <span>{t(label)}</span>
+                    <input disabled={!connected || !e} value={e ? e.value : ''} placeholder="—" onChange={(ev) => write(name, num(ev.target.value))} />
+                  </label>
+                );
+              })}
+            </div>
+          </section>
 
-              {status && <div className="setup-result ok">{status}</div>}
-            </>
+          {connected && anyMissing && (
+            <ParamRefreshNote gcs={gcs} setParams={setParams}
+              text={t('Soluk alanlar bu araçta henüz yok — BATT_MONITOR’u ayarlayıp kartı yeniden başlatın, ardından parametreleri yeniden indirin.')} />
           )}
+
+          {status && <div className="setup-result ok">{status}</div>}
         </div>
       </div>
     </div>

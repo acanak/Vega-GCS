@@ -20,7 +20,7 @@ const PRESETS: Array<{ name: string; fields: Array<[string, string]> }> = [
   { name: 'RC giriş', fields: [['RCIN', 'C1'], ['RCIN', 'C2'], ['RCIN', 'C3'], ['RCIN', 'C4']] },
 ];
 
-export function LogView({ gcs }: { gcs: UseGcs }) {
+export function LogView({ gcs, onReplay }: { gcs: UseGcs; onReplay?: (f: File) => void }) {
   const t = useT();
   const [data, setData] = useState<LogData | null>(null);
   const [name, setName] = useState<string | null>(null);
@@ -28,6 +28,7 @@ export function LogView({ gcs }: { gcs: UseGcs }) {
   const [busy, setBusy] = useState(false);
   const [domain, setDomain] = useState<'time' | 'freq' | '3d'>('time');
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const replayRef = useRef<HTMLInputElement | null>(null);
 
   // Arac loglari (MAVFtp) — dizin donanima gore degisir:
   // gercek FC (ChibiOS/SD) '/APM/LOGS', SITL 'logs' (cwd'ye goreli), Linux HAL '/var/APM/logs'
@@ -137,6 +138,13 @@ export function LogView({ gcs }: { gcs: UseGcs }) {
           <button className="btn-primary" onClick={() => fileRef.current?.click()}>{busy ? t('Yükleniyor…') : t('Log yükle')}</button>
           <input ref={fileRef} type="file" accept=".bin,.log,.tlog" style={{ display: 'none' }}
             onChange={(e) => { const f = e.target.files?.[0]; if (f) load(f); e.target.value = ''; }} />
+          {onReplay && (
+            <>
+              <button className="btn-ghost" onClick={() => replayRef.current?.click()}>▶ {t('Kayıt oynat (.tlog / .bin)')}</button>
+              <input ref={replayRef} type="file" accept=".tlog,.bin,.log" style={{ display: 'none' }}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) onReplay(f); e.target.value = ''; }} />
+            </>
+          )}
         </div>
         <div className="log-vehicle">
           <div className="log-vehicle-hd">{t('Araç logları')} · MAVFtp</div>

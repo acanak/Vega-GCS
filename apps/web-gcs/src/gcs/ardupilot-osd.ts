@@ -146,6 +146,74 @@ export const GOGGLE_ZONES: Readonly<Record<string, readonly OsdZone[]>> = {
   ],
 };
 
+// --- Hazır yerleşim şablonları -------------------------------------------
+// Tümü HD 50×18 grid (OSDn_TXT_RES = 1) için tasarlandı; x 0..49, y 0..17.
+// Kenarlarda 1 hücre pay bırakılır; gözlüklerin kendi çizim bölgeleri
+// (üst köşeler + alt-orta) boş tutulur. Uygulanınca listede OLMAYAN öğeler kapatılır.
+export interface OsdTemplate { key: string; label: string; desc: string; items: Readonly<Record<string, readonly [number, number]>> }
+export const OSD_TEMPLATES: readonly OsdTemplate[] = [
+  {
+    key: 'minimal', label: 'Minimalist', desc: 'Yalnız temel bilgiler — köşelerde hız, irtifa, pil, mod.',
+    items: {
+      CRSSHAIR: [24, 8],
+      GSPEED: [1, 1], ALTITUDE: [43, 1],
+      SATS: [1, 15], FLTMODE: [1, 16],
+      BAT_VOLT: [42, 16],
+    },
+  },
+  {
+    key: 'full', label: 'Tam Bilgi', desc: 'Her şey görünür: ufuk, pusula, seyrüsefer, güç ve link.',
+    items: {
+      COMPASS: [21, 0], HEADING: [24, 2],
+      FLTMODE: [1, 0], ARMING: [1, 1], MESSAGE: [13, 1],
+      SATS: [8, 0], RSSI: [37, 0], VTX_PWR: [43, 0], CLK: [43, 1],
+      ASPEED: [1, 6], GSPEED: [1, 8], THROTTLE: [1, 10], WIND: [1, 12],
+      HORIZON: [23, 8], SIDEBARS: [23, 8], CRSSHAIR: [24, 8],
+      ALTITUDE: [43, 6], VSPEED: [43, 8], HOME: [42, 10], RNGF: [43, 12],
+      BAT_VOLT: [1, 15], CURRENT: [1, 16], BATUSED: [1, 17],
+      EFF: [42, 15], FLTIME: [42, 16], DIST: [42, 17],
+    },
+  },
+  {
+    key: 'fighter', label: 'Fighter Jet', desc: 'HUD tarzı: merkez ufuk + nişan, yanlarda hız/irtifa bantları, üstte yön şeridi.',
+    items: {
+      COMPASS: [21, 0], HEADING: [24, 2],
+      HORIZON: [23, 8], CRSSHAIR: [24, 8], SIDEBARS: [23, 8],
+      THROTTLE: [2, 6], ASPEED: [2, 8], GSPEED: [2, 10], ROLL: [2, 12],
+      RNGF: [42, 6], ALTITUDE: [42, 8], VSPEED: [42, 10], PITCH: [42, 12],
+      FLTIME: [1, 16], FLTMODE: [1, 17], ARMING: [9, 17],
+      SATS: [43, 16], BAT_VOLT: [43, 17],
+    },
+  },
+  {
+    key: 'cinematic', label: 'Sinematik', desc: 'Çekim için tertemiz görüntü — köşelerde yalnız pil ve süre.',
+    items: {
+      CELLVOLT: [1, 16], BAT_VOLT: [1, 17],
+      RSSI: [45, 16], FLTIME: [44, 17],
+    },
+  },
+  {
+    key: 'racer', label: 'Yarış', desc: 'FPV yarış: merkez nişan, üstte tur süresi, köşelerde gaz ve hücre voltajı.',
+    items: {
+      CRSSHAIR: [24, 8], FLTIME: [23, 0],
+      RSSI: [1, 0], GSPEED: [1, 15], FLTMODE: [1, 16], THROTTLE: [1, 17],
+      CURRENT: [43, 15], BAT_VOLT: [43, 16], CELLVOLT: [43, 17],
+    },
+  },
+  {
+    key: 'longrange', label: 'Uzun Menzil', desc: 'Seyrüsefer odaklı: home oku, rüzgar, verim, mAh ve koordinatlar.',
+    items: {
+      SATS: [1, 0], HDOP: [7, 0], COMPASS: [21, 0], MESSAGE: [13, 2],
+      HOME: [1, 1], WIND: [1, 3],
+      ASPEED: [1, 6], GSPEED: [1, 8], THROTTLE: [1, 10],
+      HORIZON: [23, 8], CRSSHAIR: [24, 8],
+      ALTITUDE: [43, 6], VSPEED: [43, 8],
+      EFF: [42, 14], BATUSED: [42, 15], CURRENT: [42, 16], BAT_VOLT: [42, 17],
+      FLTMODE: [1, 15], GPSLAT: [1, 16], GPSLONG: [1, 17],
+    },
+  },
+];
+
 /** Ekran çözünürlüğü OSD<n>_TXT_RES; grid boyutunu belirler. */
 export interface OsdRes { code: number; label: string; cols: number; rows: number; }
 export const OSD_RES: readonly OsdRes[] = [

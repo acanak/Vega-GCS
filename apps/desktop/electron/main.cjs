@@ -80,7 +80,7 @@ async function createWindow() {
   });
   ses.on('usb-device-added', () => {});
   ses.on('usb-device-removed', () => {});
-  // Harici linkler (About: GitHub/Releases/Sponsor) sistem tarayıcısında açılsın
+  // Harici linkler (About/Destek: Patreon vb.) sistem tarayıcısında açılsın
   win.webContents.setWindowOpenHandler(({ url: u }) => {
     if (/^https?:/i.test(u)) { void shell.openExternal(u); return { action: 'deny' }; }
     return { action: 'allow' };

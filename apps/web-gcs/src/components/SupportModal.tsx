@@ -1,5 +1,4 @@
 import { useT } from '../gcs/i18n';
-import { DONATE_URL } from './AboutModal';
 
 export const PATREON_URL = 'https://www.patreon.com/cw/aCanak';
 
@@ -13,7 +12,7 @@ const TIERS: Tier[] = [
   { price: '$150+', name: 'Görev Ortağı', perk: 'Öne çıkan logo + 1:1 görüşme + öncelikli talepler' },
 ];
 
-/** Destek/bağış ekranı: Patreon + GitHub Sponsors + aylık tier'lar (TR/EN/DE). */
+/** Destek/bağış ekranı: Patreon + aylık tier'lar (TR/EN/DE). */
 export function SupportModal({ onClose }: { onClose: () => void }) {
   const t = useT();
   return (
@@ -30,7 +29,6 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
 
         <div className="support-plat">
           <a className="btn-primary about-btn" href={PATREON_URL} target="_blank" rel="noreferrer">Patreon</a>
-          <a className="btn-ghost about-btn" href={DONATE_URL} target="_blank" rel="noreferrer">GitHub Sponsors</a>
         </div>
 
         <div className="about-sec-hd">{t('Aylık destek seviyeleri')}</div>
