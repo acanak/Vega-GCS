@@ -32,6 +32,8 @@ export interface DfuOptions {
   transferSize?: number;
   onProgress?: (done: number, total: number) => void;
   onLog?: (msg: string) => void;
+  /** İsteğe bağlı çevirmen; verilmezse metin Türkçe (kaynak dil) kalır. */
+  t?: (s: string) => string;
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
@@ -93,26 +95,27 @@ export async function flashDfu(dev: UsbDevice, image: Uint8Array, opts: DfuOptio
   const base = opts.address ?? DEFAULT_ADDR;
   const xfer = opts.transferSize ?? DEFAULT_XFER;
   const log = opts.onLog;
+  const tr = opts.t ?? ((s: string) => s);
   await dev.open();
   if (!dev.configuration) await dev.selectConfiguration(1);
   const iface = findDfuInterface(dev);
   await dev.claimInterface(iface);
-  log?.('DFU arayüzü ' + iface + ' açıldı');
+  log?.(tr('DFU arayüzü açıldı') + ' (#' + iface + ')');
   try {
     // Hata durumunu temizle
     let s = await getStatus(dev, iface);
     if (s.state === STATE_dfuERROR) { await ctrlOut(dev, iface, REQ_CLRSTATUS, 0, new Uint8Array()); }
 
-    log?.('Mass erase…');
+    log?.(tr('Tam silme (mass erase)… birkaç saniye sürebilir'));
     await dfuseCmd(dev, iface, Uint8Array.of(0x41)); // tam silme (adres yok)
 
-    log?.('Adres 0x' + base.toString(16) + ' ayarlanıyor');
+    log?.(tr('Adres ayarlanıyor') + ' 0x' + base.toString(16));
     await dfuseCmd(dev, iface, addrCmd(0x21, base)); // set address pointer
 
     const total = image.length;
     let off = 0;
     let block = 2; // DfuSe veri blokları wBlockNum=2'den başlar; adres otomatik artar
-    log?.('Yazılıyor… (' + Math.round(total / 1024) + ' KB)');
+    log?.(tr('Yazılıyor…') + ' (' + Math.round(total / 1024) + ' KB)');
     while (off < total) {
       const chunk = image.subarray(off, Math.min(off + xfer, total));
       await ctrlOut(dev, iface, REQ_DNLOAD, block, chunk);
@@ -124,11 +127,11 @@ export async function flashDfu(dev: UsbDevice, image: Uint8Array, opts: DfuOptio
       opts.onProgress?.(off, total);
     }
 
-    log?.('Manifest / yeniden başlatma');
+    log?.(tr('Manifest / yeniden başlatma'));
     // Sıfır uzunluklu DNLOAD -> manifestation (cihaz uygulamaya geçer)
     await ctrlOut(dev, iface, REQ_DNLOAD, 0, new Uint8Array());
     try { await getStatus(dev, iface); } catch { /* cihaz reset atınca kopabilir — normal */ }
-    log?.('Tamamlandı ✓');
+    log?.(tr('Tamamlandı') + ' ✓');
   } finally {
     try { await dev.releaseInterface(iface); } catch { /* yok say */ }
     try { await dev.close(); } catch { /* yok say */ }
