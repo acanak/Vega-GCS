@@ -1,10 +1,11 @@
 import { useT } from '../gcs/i18n';
+import { APP_VERSION, CHANNEL, buildId } from '../gcs/version';
 
 export const REPO_URL = 'https://github.com/acanak/Vega-GCS';
 export const RELEASES_URL = REPO_URL + '/releases';
 export const LICENSE_URL = REPO_URL + '/blob/main/LICENSE';
 export const DONATE_URL = 'https://github.com/sponsors/acanak';
-export const APP_VERSION = '1.0.0';
+export { APP_VERSION };
 
 /** Hakkında ekranı: sürüm, masaüstü indirme, bağış, lisans (AGPL-3.0) ve copyright. */
 export function AboutModal({ onClose, onOpenSupport }: { onClose: () => void; onOpenSupport: () => void }) {
@@ -15,10 +16,12 @@ export function AboutModal({ onClose, onOpenSupport }: { onClose: () => void; on
         <div className="about-hd">
           <span className="about-mark">◈</span>
           <div>
-            <div className="about-title">Vega GCS</div>
+            <div className="about-title">Vega GCS {CHANNEL && <span className="beta-badge">{CHANNEL}</span>}</div>
             <div className="about-ver">v{APP_VERSION}</div>
           </div>
         </div>
+
+        <div className="about-build" title={t('Yayınlanan yapının kimliği (sürüm · commit · zaman)')}>{buildId()}</div>
 
         <p className="about-desc">{t('ArduPilot için tarayıcı tabanlı yer kontrol istasyonu — uçak / kopter / rover.')}</p>
 
