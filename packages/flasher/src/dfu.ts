@@ -78,16 +78,32 @@ async function getStatus(dev: UsbDevice, iface: number): Promise<DfuStatus> {
   return { status: d.getUint8(0), poll: d.getUint8(1) | (d.getUint8(2) << 8) | (d.getUint8(3) << 16), state: d.getUint8(4) };
 }
 
+// GETSTATUS'u geçici USB hatalarına toleranslı yap: uzun silme/yazma sırasında ST
+// bootloader kontrol transferlerini NAK'lar; Windows (WinUSB) bunu beklemek yerine
+// "transfer error" ile keser. Cihaz meşgulken bu ölümcül değildir — bekleyip yeniden dene.
+async function getStatusRetry(dev: UsbDevice, iface: number, budgetMs: number): Promise<DfuStatus> {
+  const start = Date.now();
+  for (;;) {
+    try {
+      return await getStatus(dev, iface);
+    } catch (e) {
+      if (Date.now() - start > budgetMs) throw e;
+      await sleep(300);
+    }
+  }
+}
+
 // Bir DNLOAD'ın tamamlanmasını bekle. İlk GETSTATUS komutu tetikler ve dfuDNBUSY +
 // bwPollTimeout döndürür; poll süresi geçmeden tekrar sorgulamak cihazı NAK'a sokar ve
 // WebUSB kontrol transferi süresiz kilitlenir. Bu yüzden ÖNCE bekle, SONRA yeniden sorgula;
-// dfuDNBUSY'den çıkana (idle) kadar tekrarla.
-async function completeDownload(dev: UsbDevice, iface: number): Promise<DfuStatus> {
-  let s = await getStatus(dev, iface); // komutu/yazımı tetikler → dfuDNBUSY
+// dfuDNBUSY'den çıkana (idle) kadar tekrarla. busyBudgetMs: cihazın NAK'ladığı dönemde
+// GETSTATUS yeniden deneme bütçesi (mass erase ~30 sn sürebilir).
+async function completeDownload(dev: UsbDevice, iface: number, busyBudgetMs = 5000): Promise<DfuStatus> {
+  let s = await getStatusRetry(dev, iface, busyBudgetMs); // komutu/yazımı tetikler → dfuDNBUSY
   let guard = 0;
   while (s.state === STATE_dfuDNBUSY) {
     await sleep(s.poll || 1);
-    s = await getStatus(dev, iface);
+    s = await getStatusRetry(dev, iface, busyBudgetMs);
     if (++guard > 200000) throw new Error('DFU: DNBUSY zaman aşımı (cihaz yanıt vermiyor)');
   }
   if (s.state === STATE_dfuERROR) throw new Error('DfuSe hatası (status ' + s.status + ', state ' + s.state + ')');
@@ -95,9 +111,9 @@ async function completeDownload(dev: UsbDevice, iface: number): Promise<DfuStatu
 }
 
 // DNLOAD wValue=0 ile DfuSe komutu gönder ve tamamlanmasını bekle.
-async function dfuseCmd(dev: UsbDevice, iface: number, bytes: Uint8Array): Promise<void> {
+async function dfuseCmd(dev: UsbDevice, iface: number, bytes: Uint8Array, busyBudgetMs?: number): Promise<void> {
   await ctrlOut(dev, iface, REQ_DNLOAD, 0, bytes);
-  await completeDownload(dev, iface);
+  await completeDownload(dev, iface, busyBudgetMs);
 }
 
 function addrCmd(op: number, addr: number): Uint8Array {
@@ -120,8 +136,9 @@ export async function flashDfu(dev: UsbDevice, image: Uint8Array, opts: DfuOptio
     let s = await getStatus(dev, iface);
     if (s.state === STATE_dfuERROR) { await ctrlOut(dev, iface, REQ_CLRSTATUS, 0, new Uint8Array()); }
 
-    log?.(tr('Tam silme (mass erase)… birkaç saniye sürebilir'));
-    await dfuseCmd(dev, iface, Uint8Array.of(0x41)); // tam silme (adres yok)
+    log?.(tr('Tam silme (mass erase)… 30 saniyeye kadar sürebilir, bekleyin'));
+    // F4/F7'de tam silme ~15-30 sn; cihaz bu sürede GETSTATUS'u NAK'layabilir → geniş bütçe
+    await dfuseCmd(dev, iface, Uint8Array.of(0x41), 90_000); // tam silme (adres yok)
 
     log?.(tr('Adres ayarlanıyor') + ' 0x' + base.toString(16));
     await dfuseCmd(dev, iface, addrCmd(0x21, base)); // set address pointer
