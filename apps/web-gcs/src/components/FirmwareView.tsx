@@ -72,6 +72,7 @@ export function FirmwareView() {
   const [info, setInfo] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const dfuFileRef = useRef<HTMLInputElement | null>(null);
+  const [dfuFile, setDfuFile] = useState<File | null>(null);
   const ioRef = useRef<{ io: SerialIO; close: () => Promise<void> } | null>(null);
   const addLog = (m: string): void => setLog((l) => [...l, m].slice(-140));
 
@@ -192,7 +193,20 @@ export function FirmwareView() {
   };
 
   // ---- DFU (WebUSB) ----
-  const dfuFlash = async (file: File): Promise<void> => {
+  // WebUSB requestDevice() yalnızca aktif kullanıcı hareketi (tık) içinde, herhangi bir
+  // await'ten ÖNCE çağrılabilir. Bu yüzden akış iki adım: (1) dosya seç, (2) tıkla cihaz seç+yaz.
+  const dfuWrite = async (): Promise<void> => {
+    const file = dfuFile;
+    if (!file) { addLog(t('Önce bir DFU dosyası seçin')); return; }
+    // İlk iş: cihaz seçtir (bundan önce await YOK — kullanıcı hareketi bozulmasın).
+    let dev;
+    try {
+      dev = await requestDfuDevice();
+    } catch (e) {
+      addLog(t('DFU hatası:') + ' ' + (e instanceof Error ? e.message : String(e)));
+      return;
+    }
+    addLog(t('DFU cihazı seçildi') + (dev.productName ? ' · ' + dev.productName : ''));
     setBusy(true); setProgress({ done: 0, total: 1 });
     try {
       let image: Uint8Array;
@@ -205,9 +219,6 @@ export function FirmwareView() {
         image = new Uint8Array(await file.arrayBuffer());
         addLog('DFU .bin ' + file.name + ' → 0x08000000 (' + Math.round(image.length / 1024) + ' KB)');
       }
-      addLog(t('⚠ DFU için "_with_bl" imajı gerekir. Cihaz DFU modunda olmalı.'));
-      const dev = await requestDfuDevice();
-      addLog(t('DFU cihazı seçildi') + (dev.productName ? ' · ' + dev.productName : ''));
       await flashDfu(dev, image, { address: base, onProgress: (done, total) => setProgress({ done, total }), onLog: addLog });
       addLog(t('DFU tamamlandı') + ' ✓');
     } catch (e) {
@@ -271,13 +282,15 @@ export function FirmwareView() {
         <div className="card-hd"><h2>{t('Firmware kurulum · DFU (WebUSB)')}</h2></div>
         <div className="card-body setup-body">
           <p className="setup-desc">
-            {t('Bootloader bozuksa ya da BOOT0 ile karta DFU modunda erişiliyorsa STM32 DFU üzerinden yazın. Ham')} <b>.bin</b> {t('veya')} <b>.hex</b> {t('("_with_bl" imajı) seçin — imaj 0x08000000\'a yazılır.')}
+            {t('Bootloader bozuksa ya da BOOT0 ile karta DFU modunda erişiliyorsa STM32 DFU üzerinden yazın. Ham')} <b>.bin</b> {t('veya')} <b>.hex</b> {t('imajı seçin — imaj 0x08000000\'a yazılır (dosya adı önemli değil, cihaz DFU modunda olmalı).')}
             {' '}<b>{t('Windows:')}</b> {t('DFU aygıtı için WinUSB sürücüsü (Zadig) gerekebilir. macOS/Linux genelde hazırdır. Deneyseldir.')}
           </p>
           <div className="setup-actions">
-            <button className="btn-primary" disabled={busy} onClick={() => dfuFileRef.current?.click()}>{t('DFU imajı seç ve yaz (.bin / .hex)')}</button>
-            <input ref={dfuFileRef} type="file" accept=".bin,.hex" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) void dfuFlash(f); e.target.value = ''; }} />
+            <button className="btn-ghost" disabled={busy} onClick={() => dfuFileRef.current?.click()}>{t('DFU dosyası seç (.bin / .hex)')}</button>
+            <button className="btn-primary" disabled={!dfuFile || busy} onClick={() => void dfuWrite()}>{t('DFU cihazı seç ve yaz')}</button>
+            <input ref={dfuFileRef} type="file" accept=".bin,.hex" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) { setDfuFile(f); addLog(t('DFU dosyası seçildi:') + ' ' + f.name); } e.target.value = ''; }} />
           </div>
+          {dfuFile && <div className="setup-result ok">{t('Seçili dosya:')} {dfuFile.name}</div>}
         </div>
       </div>
 
