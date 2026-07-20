@@ -219,7 +219,17 @@ export function FirmwareView() {
         image = new Uint8Array(await file.arrayBuffer());
         addLog('DFU .bin ' + file.name + ' → 0x08000000 (' + Math.round(image.length / 1024) + ' KB)');
       }
-      await flashDfu(dev, image, { address: base, onProgress: (done, total) => setProgress({ done, total }), onLog: addLog });
+      let lastDecile = 0;
+      await flashDfu(dev, image, {
+        address: base,
+        t,
+        onProgress: (done, total) => {
+          setProgress({ done, total });
+          const d = Math.floor((done / Math.max(1, total)) * 10);
+          if (d > lastDecile) { lastDecile = d; addLog(t('Yazılıyor…') + ' ' + d * 10 + '% (' + Math.round(done / 1024) + '/' + Math.round(total / 1024) + ' KB)'); }
+        },
+        onLog: addLog,
+      });
       addLog(t('DFU tamamlandı') + ' ✓');
     } catch (e) {
       addLog(t('DFU hatası:') + ' ' + (e instanceof Error ? e.message : String(e)));
@@ -291,6 +301,7 @@ export function FirmwareView() {
             <input ref={dfuFileRef} type="file" accept=".bin,.hex" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) { setDfuFile(f); addLog(t('DFU dosyası seçildi:') + ' ' + f.name); } e.target.value = ''; }} />
           </div>
           {dfuFile && <div className="setup-result ok">{t('Seçili dosya:')} {dfuFile.name}</div>}
+          {progress && <div className="fw-bar"><div className="fw-fill" style={{ width: pct + '%' }} /><span>{pct}%</span></div>}
         </div>
       </div>
 
