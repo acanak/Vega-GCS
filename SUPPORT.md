@@ -7,7 +7,6 @@ development and give backers recognition, priority support, and a say in the roa
 ## Where to support
 
 - **Patreon:** https://www.patreon.com/cw/aCanak
-- **GitHub Sponsors:** https://github.com/sponsors/acanak
 
 ## Monthly tiers
 
@@ -24,6 +23,5 @@ Annual billing is offered at a ~10–15% discount on every tier.
 ## Notes
 
 - **AGPL-3.0:** perks are recognition, support, and services — not exclusive/closed features.
-  Early-access builds are fine because the source is already public on GitHub.
 - **Goals/milestones** (e.g. "signed Windows/Linux CI builds", "new vehicle support") are published
   on Patreon so backers can see what their support unlocks for the whole community.

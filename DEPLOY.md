@@ -7,7 +7,7 @@ the user opens it in a Chromium browser (Chrome / Edge). Firefox and Safari do n
 ## 1) Cloudflare Pages — connect the repo (Git integration)
 
 Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** →
-select `acanak/Vega-GCS`, branch `main`, then set:
+select the repository (private repos work too), branch `main`, then set:
 
 | Setting | Value |
 |---|---|
