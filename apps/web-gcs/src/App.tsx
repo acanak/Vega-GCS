@@ -31,6 +31,8 @@ export function App() {
   const [paramLoad, setParamLoad] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [aboutOpen, setAboutOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
+  // Loglar ekranından seçilen kayıt; uçuş ekranına aktarılır ve oynatma başlar
+  const [replayFile, setReplayFile] = useState<File | null>(null);
   const autoFetched = useRef(false);
 
   // Baglaninca parametreleri otomatik cek (MAVFtp ile hizli; yoksa klasik).
@@ -54,7 +56,7 @@ export function App() {
       <header className="topbar">
         <div className="brand"><span className="brand-mark">◈</span> VEGA GCS{CHANNEL && <span className="beta-badge" title={t('Ön-yayın sürümü')}>{CHANNEL}</span>}</div>
         <nav className="viewnav">
-          <button className={view === 'flight' ? 'active' : ''} onClick={() => setView('flight')}>{t('Uçuş Verisi')}</button>
+          <button className={view === 'flight' ? 'active' : ''} onClick={() => setView('flight')}>{t('Uçuş')}</button>
           <button className={view === 'status' ? 'active' : ''} onClick={() => setView('status')}>{t('Durum')}</button>
           <button className={view === 'plan' ? 'active' : ''} onClick={() => setView('plan')}>{t('Plan')}</button>
           <button className={view === 'setup' ? 'active' : ''} onClick={() => setView('setup')}>{t('Kurulum')}</button>
@@ -70,11 +72,11 @@ export function App() {
       </header>
       {/* Gorunumler mount'ta KALIR; sekme degisince unmount olmaz -> harita/HUD/iz/durum korunur.
           Yalniz CSS ile gizlenir (display:contents aktif, display:none pasif). */}
-      <div className={'view-host' + (view === 'flight' ? '' : ' view-hidden')}><FlightDataView gcs={gcs} params={params} setParams={setParams} /></div>
+      <div className={'view-host' + (view === 'flight' ? '' : ' view-hidden')}><FlightDataView gcs={gcs} params={params} setParams={setParams} replayFile={replayFile} onReplayConsumed={() => setReplayFile(null)} /></div>
       <div className={'view-host' + (view === 'status' ? '' : ' view-hidden')}><StatusView gcs={gcs} telemetry={telemetry} /></div>
       <div className={'view-host' + (view === 'plan' ? '' : ' view-hidden')}><PlannerView gcs={gcs} telemetry={telemetry} mission={mission} setMission={setMission} /></div>
       <div className={'view-host' + (view === 'setup' ? '' : ' view-hidden')}><SetupView gcs={gcs} params={params} setParams={setParams} telemetry={telemetry} /></div>
-      <div className={'view-host' + (view === 'logs' ? '' : ' view-hidden')}><LogView gcs={gcs} /></div>
+      <div className={'view-host' + (view === 'logs' ? '' : ' view-hidden')}><LogView gcs={gcs} onReplay={(f) => { setReplayFile(f); setView('flight'); }} /></div>
       <PwaBadge />
       <SerialPortPicker />
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} onOpenSupport={() => { setAboutOpen(false); setSupportOpen(true); }} />}

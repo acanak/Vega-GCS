@@ -9,7 +9,7 @@ import { useT } from '../gcs/i18n';
 const CMD_NAV_TAKEOFF = 22;
 const CMD_DO_CHANGE_SPEED = 178;
 
-interface FeedItem { id: number; role: 'user' | 'bot' | 'sys'; text: string }
+interface FeedItem { id: number; role: 'user' | 'bot' | 'sys'; text: string; n?: number }
 
 interface Ctx {
   conn: GcsConnection | null;
@@ -160,8 +160,10 @@ function buildContext(ctx: Ctx): string {
   ].join(' ') + ' ' + caps;
 }
 
-export function ChatPanel({ gcs, telemetry, params, setParams }: {
+export function ChatPanel({ gcs, telemetry, params, setParams, injectRef }: {
   gcs: UseGcs; telemetry: VehicleTelemetry | null; params: ParamEntry[]; setParams: (p: ParamEntry[]) => void;
+  /** Dış panellerin (ör. Master Caution) akışa bot mesajı yazabilmesi için kanca. */
+  injectRef?: { current: ((text: string) => void) | null };
 }) {
   const t = useT();
   const [feed, setFeed] = useState<FeedItem[]>([]);
@@ -184,13 +186,29 @@ export function ChatPanel({ gcs, telemetry, params, setParams }: {
   const push = (role: FeedItem['role'], text: string): void =>
     setFeed((f) => [...f.slice(-120), { id: idRef.current++, role, text }]);
 
-  // Otopilot status text'lerini akisa ekle
+  useEffect(() => {
+    if (!injectRef) return;
+    injectRef.current = (text) => push('bot', text);
+    return () => { injectRef.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [injectRef]);
+
+  // Otopilot status text'lerini akisa ekle; art arda ayni metin tek satirda ×N sayaciyla birikir
+  // (or. firmware'in "Sending unknown message" spam'i akisi bogmasin)
   const statusTexts: StatusTextEntry[] = gcs.statusTexts;
   useEffect(() => {
     const fresh = statusTexts.filter((e) => e.id > seenRef.current);
     if (fresh.length === 0) return;
     seenRef.current = statusTexts[statusTexts.length - 1]!.id;
-    setFeed((f) => [...f.slice(-120), ...fresh.map((e) => ({ id: idRef.current++, role: 'sys' as const, text: e.text }))]);
+    setFeed((f) => {
+      const out = [...f];
+      for (const e of fresh) {
+        const last = out[out.length - 1];
+        if (last && last.role === 'sys' && last.text === e.text) out[out.length - 1] = { ...last, n: (last.n ?? 1) + 1 };
+        else out.push({ id: idRef.current++, role: 'sys', text: e.text });
+      }
+      return out.slice(-120);
+    });
   }, [statusTexts]);
 
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight; }, [feed]);
@@ -243,7 +261,7 @@ export function ChatPanel({ gcs, telemetry, params, setParams }: {
         {feed.map((m) => (
           <div key={m.id} className={'chat-msg chat-' + m.role}>
             {m.role === 'sys' ? <span className="chat-sys-tag">✈</span> : null}
-            <span>{m.text}</span>
+            <span>{m.text}{m.n && m.n > 1 ? <b className="chat-rep"> ×{m.n}</b> : null}</span>
           </div>
         ))}
       </div>

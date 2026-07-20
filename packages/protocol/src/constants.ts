@@ -37,6 +37,9 @@ export const MSG = {
   RC_CHANNELS_OVERRIDE: 70,
   ADSB_VEHICLE: 246,
   SERVO_OUTPUT_RAW: 36,
+  EKF_STATUS_REPORT: 193,
+  VIBRATION: 241,
+  DISTANCE_SENSOR: 132,
 } as const;
 
 // Kimlik ve enum sabitleri
@@ -57,6 +60,7 @@ export const MAV_CMD_DO_START_MAG_CAL = 42424;
 export const MAV_CMD_DO_ACCEPT_MAG_CAL = 42425;
 export const MAV_CMD_DO_CANCEL_MAG_CAL = 42426;
 export const MAV_CMD_ACCELCAL_VEHICLE_POS = 42429;
+export const MAV_CMD_SET_MESSAGE_INTERVAL = 511;
 
 // ACCELCAL_VEHICLE_POS konumlari
 export const ACCELCAL_POS: Readonly<Record<number, string>> = {

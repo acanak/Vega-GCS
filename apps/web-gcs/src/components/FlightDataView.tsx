@@ -13,6 +13,7 @@ import { MapView } from './MapView';
 import { ActionsPanel } from './ActionsPanel';
 import { NumberPromptModal } from './NumberPromptModal';
 import { SystemsPanel } from './SystemsPanel';
+import { MasterCautionPanel } from './MasterCautionPanel';
 import { ChatPanel } from './ChatPanel';
 
 const POS_TYPE_MASK = 0xff8; // yalniz konum (hiz/ivme/yaw yok sayilir)
@@ -20,7 +21,11 @@ const POS_TYPE_MASK = 0xff8; // yalniz konum (hiz/ivme/yaw yok sayilir)
 const fmtTime = (s: number): string =>
   Math.floor(s / 60).toString().padStart(2, '0') + ':' + Math.floor(s % 60).toString().padStart(2, '0');
 
-export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params: ParamEntry[]; setParams: (p: ParamEntry[]) => void }) {
+export function FlightDataView({ gcs, params, setParams, replayFile, onReplayConsumed }: {
+  gcs: UseGcs; params: ParamEntry[]; setParams: (p: ParamEntry[]) => void;
+  /** Loglar ekranından seçilen kayıt — geldiğinde oynatma başlar (App yönlendirir). */
+  replayFile?: File | null; onReplayConsumed?: () => void;
+}) {
   const t = useT();
   const [playback, setPlayback] = useState<PlaybackSource | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -28,7 +33,6 @@ export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params
   const [speed, setSpeed] = useState(2);
   const playbackRef = useRef<PlaybackSource | null>(null);
   const timeRef = useRef(0);
-  const fileRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => { playbackRef.current = playback; }, [playback]);
 
   const activeRef = (playback ? playbackRef : gcs.connRef) as { current: GcsConnection | null };
@@ -40,6 +44,7 @@ export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params
   const [gotoTarget, setGotoTarget] = useState<{ lat: number; lon: number } | null>(null);
   const [guidedTarget, setGuidedTarget] = useState<{ lat: number; lon: number } | null>(null);
   const [sysOpen, setSysOpen] = useState(() => localStorage.getItem('wmp-sys-open') !== '0');
+  const chatInjectRef = useRef<((text: string) => void) | null>(null);
   const toggleSys = (open: boolean): void => { setSysOpen(open); localStorage.setItem('wmp-sys-open', open ? '1' : '0'); };
 
   // GUIDED: bir noktaya git (SET_POSITION_TARGET_GLOBAL_INT, göreceli irtifa)
@@ -78,6 +83,14 @@ export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params
   const exitReplay = (): void => { setPlayback(null); playbackRef.current = null; setPlaying(false); };
   const scrub = (t: number): void => { timeRef.current = t; setTime(t); playback?.seek(t); };
 
+  // Loglar ekranından gelen kayıt dosyasını oynat
+  useEffect(() => {
+    if (!replayFile) return;
+    void loadReplay(replayFile);
+    onReplayConsumed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [replayFile]);
+
   useEffect(() => {
     if (!playback || !playing) return;
     let raf = 0;
@@ -114,11 +127,7 @@ export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params
             </div>
           </div>
         ) : (
-          <>
-            <ActionsPanel connRef={gcs.connRef} connected={connected} onOpenReplay={() => fileRef.current?.click()} vehicleType={telemetry?.vehicleType ?? 0} />
-            <input ref={fileRef} type="file" accept=".tlog,.bin,.log" style={{ display: 'none' }}
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) void loadReplay(f); e.target.value = ''; }} />
-          </>
+          <ActionsPanel connRef={gcs.connRef} connected={connected} vehicleType={telemetry?.vehicleType ?? 0} />
         )}
       </section>
       <section className="col col-map">
@@ -127,7 +136,8 @@ export function FlightDataView({ gcs, params, setParams }: { gcs: UseGcs; params
       {sysOpen ? (
         <aside className="col col-sys-fill">
           <SystemsPanel telemetry={telemetry} onCollapse={() => toggleSys(false)} />
-          <ChatPanel gcs={gcs} telemetry={telemetry} params={params} setParams={setParams} />
+          <MasterCautionPanel gcs={gcs} telemetry={telemetry} params={params} onReport={(txt) => chatInjectRef.current?.(txt)} />
+          <ChatPanel gcs={gcs} telemetry={telemetry} params={params} setParams={setParams} injectRef={chatInjectRef} />
         </aside>
       ) : (
         <button className="sys-rail" onClick={() => toggleSys(true)} title={t('Sistemler')} aria-label={t('Sistemler')}>

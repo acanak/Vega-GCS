@@ -4,7 +4,7 @@ import { modeName } from '@wmp/protocol';
 import type { UseGcs } from '../gcs/useGcs';
 import { useTelemetry } from '../gcs/useTelemetry';
 import { useT } from '../gcs/i18n';
-import { OSD_ELEMENTS, OSD_TYPES, OSD_UNITS, OSD_RES, OSD_WARN, OSD_FONTS, GOGGLE_PRESETS, GOGGLE_ZONES, SERIAL_PROTO_MSP_DISPLAYPORT, SERIAL_BAUD_115200 } from '../gcs/ardupilot-osd';
+import { OSD_ELEMENTS, OSD_TYPES, OSD_UNITS, OSD_RES, OSD_WARN, OSD_FONTS, OSD_TEMPLATES, GOGGLE_PRESETS, GOGGLE_ZONES, SERIAL_PROTO_MSP_DISPLAYPORT, SERIAL_BAUD_115200 } from '../gcs/ardupilot-osd';
 
 const clampI = (v: number, max: number): number => Math.max(0, Math.min(max, Math.round(v)));
 const DIR_ARROWS = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
@@ -66,6 +66,7 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
   const [adv, setAdv] = useState(false);
   const [goggle, setGoggle] = useState(() => localStorage.getItem('wmp-osd-goggle') || 'none');
   const setGoggleP = (g: string): void => { setGoggle(g); localStorage.setItem('wmp-osd-goggle', g); };
+  const [tmpl, setTmpl] = useState('');
   const [local, setLocal] = useState<Record<string, number>>({});
   const gridRef = useRef<HTMLDivElement | null>(null);
   const connected = gcs.status === 'connected';
@@ -95,6 +96,11 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
   const curPort = SERIAL_PORTS.find((x) => val('SERIAL' + x + '_PROTOCOL', -1) === SERIAL_PROTO_MSP_DISPLAYPORT) ?? 0;
   const setOsdPort = (x: number): void => { if (!x) return; setP('SERIAL' + x + '_PROTOCOL', SERIAL_PROTO_MSP_DISPLAYPORT); setP('SERIAL' + x + '_BAUD', SERIAL_BAUD_115200); };
   const needsPort = [osdType, osdType2].some((tp) => tp === 5 || tp === 3);
+  // MSP_OPTIONS bit maskesi: 0 = telemetri modu (tek kablo), 1 = DJI düzeltmelerini kapat,
+  // 2 = Betaflight font emülasyonu (DJI gözlüklerde ArduPilot fontu olmadığından gerekli)
+  const mspOpt = Math.round(val('MSP_OPTIONS', 0));
+  const setMspBit = (bit: number, on: boolean): void =>
+    setP('MSP_OPTIONS', on ? (mspOpt | (1 << bit)) : (mspOpt & ~(1 << bit)));
   const resParam = 'OSD' + screen + '_TXT_RES';
   const resCode = isHd ? val(resParam, 1) : 0;
   const grid = OSD_RES.find((r) => r.code === resCode) ?? OSD_RES[0]!;
@@ -115,6 +121,39 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
     setP(fx(drag.token, 'X'), drag.x);
     setP(fx(drag.token, 'Y'), drag.y);
     setDrag(null);
+  };
+
+  // Çok sayıda parametreyi tek state güncellemesiyle yaz (setP döngüde stale params bırakır)
+  const setMany = (updates: Record<string, number>): void => {
+    setLocal((prev) => ({ ...prev, ...updates }));
+    if (connected) {
+      setParams(params.map((p) => (p.name in updates ? { ...p, value: updates[p.name]! } : p)));
+      for (const [name, value] of Object.entries(updates)) {
+        const entry = pmap.get(name);
+        if (entry) gcs.connRef.current?.setParam(name, value, entry.type).catch(() => {});
+      }
+    }
+  };
+
+  // Şablon uygula: HD 50×18'e geç, listedeki öğeleri konumlandır, kalanları kapat.
+  const applyTemplate = (key: string): void => {
+    const tp = OSD_TEMPLATES.find((x) => x.key === key);
+    if (!tp) return;
+    const u: Record<string, number> = {
+      [resParam]: 1, // HD 50×18 — tüm şablonlar bu grid için tasarlandı
+      ['OSD' + screen + '_ENABLE']: 1,
+    };
+    for (const el of OSD_ELEMENTS) {
+      const pos = tp.items[el.token];
+      if (pos) {
+        u[fx(el.token, 'EN')] = 1;
+        u[fx(el.token, 'X')] = pos[0];
+        u[fx(el.token, 'Y')] = pos[1];
+      } else if (val(fx(el.token, 'EN'), 0) > 0) {
+        u[fx(el.token, 'EN')] = 0;
+      }
+    }
+    setMany(u);
   };
 
   const s = search.trim().toUpperCase();
@@ -252,6 +291,39 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
               </select>
             </label>
             <button className="btn-ghost osd-adv-btn" onClick={() => setAdv((a) => !a)}>{adv ? '▾' : '▸'} {t('Gelişmiş')}</button>
+          </div>
+
+          {needsPort && (
+            <div className="osd-settings osd-msp-row">
+              <span className="osd-msp-hd">MSP_OPTIONS</span>
+              <label className="osd-set chk-set" title={t('DJI gözlüklerde ArduPilot font tablosu olmadığından gereklidir')}>
+                <span>{t('Betaflight font emülasyonu')}</span>
+                <input type="checkbox" checked={(mspOpt & 4) !== 0} onChange={(e) => setMspBit(2, e.target.checked)} />
+              </label>
+              <label className="osd-set chk-set" title={t('Hava ünitesi yalnız TX hattıyla (tek kablo) bağlıysa açın')}>
+                <span>{t('Telemetri (push) modu')}</span>
+                <input type="checkbox" checked={(mspOpt & 1) !== 0} onChange={(e) => setMspBit(0, e.target.checked)} />
+              </label>
+              <label className="osd-set chk-set" title={t('DJI uyumluluk düzeltmelerini devre dışı bırakır — yalnız gerekirse')}>
+                <span>{t('DJI düzeltmelerini kapat')}</span>
+                <input type="checkbox" checked={(mspOpt & 2) !== 0} onChange={(e) => setMspBit(1, e.target.checked)} />
+              </label>
+            </div>
+          )}
+
+          <div className="osd-settings osd-tmpl-row">
+            <label className="osd-set">
+              <span>{t('Şablon')} (HD 50×18)</span>
+              <select value={tmpl} onChange={(e) => setTmpl(e.target.value)}>
+                <option value="">{t('— seç —')}</option>
+                {OSD_TEMPLATES.map((tp) => <option key={tp.key} value={tp.key}>{t(tp.label)}</option>)}
+              </select>
+            </label>
+            <button className="btn-primary" disabled={!tmpl} onClick={() => applyTemplate(tmpl)}
+              title={t('Mevcut yerleşimin üzerine yazar; sonrasında öğeleri sürükleyerek düzenleyebilirsiniz')}>
+              {t('Uygula')} → OSD{screen}
+            </button>
+            {tmpl && <span className="osd-tmpl-desc">{t(OSD_TEMPLATES.find((x) => x.key === tmpl)?.desc ?? '')}</span>}
           </div>
 
           {adv && (

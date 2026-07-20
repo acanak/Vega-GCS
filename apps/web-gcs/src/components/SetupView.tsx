@@ -13,6 +13,7 @@ import { FlightModesView } from './FlightModesView';
 import { FailsafeView } from './FailsafeView';
 import { ServoOutputView } from './ServoOutputView';
 import { PlaneSetupView } from './PlaneSetupView';
+import { BoardOrientationView } from './BoardOrientationView';
 import { BatterySetupView } from './BatterySetupView';
 import { PidTuneView } from './PidTuneView';
 import { TecsTuneView } from './TecsTuneView';
@@ -20,26 +21,28 @@ import { SerialPortsView } from './SerialPortsView';
 import { OSDView } from './OSDView';
 import { ParamConfigView } from './ParamConfigView';
 import { SikRadioView } from './SikRadioView';
-import { GPS_FIELDS, GIMBAL_FIELDS, ADSB_FIELDS, FLOW_FIELDS } from '../gcs/ardupilot-config';
+import { LidarSetupView } from './LidarSetupView';
+import { GPS_FIELDS, ADSB_FIELDS, FLOW_FIELDS } from '../gcs/ardupilot-config';
 
-type Section = 'params' | 'firmware' | 'accel' | 'compass' | 'radio' | 'rc' | 'servo' | 'plane' | 'battery' | 'tune' | 'tecs' | 'modes' | 'failsafe' | 'serial' | 'osd' | 'gps' | 'gimbal' | 'adsb' | 'flow' | 'sik';
+type Section = 'params' | 'firmware' | 'accel' | 'compass' | 'radio' | 'rc' | 'servo' | 'plane' | 'orient' | 'battery' | 'tune' | 'tecs' | 'modes' | 'failsafe' | 'serial' | 'osd' | 'gps' | 'lidar' | 'adsb' | 'flow' | 'sik';
 // Menü, aracı sıfırdan yapılandırma sırasına göre (ground-up) düzenlidir:
 // Temel kurulum (sıralı, numaralı adımlar) -> Donanım -> Ayar -> (en altta) Parametreler.
 const GROUPS: Array<{ title: string; numbered?: boolean; items: Array<[Section, string]> }> = [
   { title: 'Temel kurulum', numbered: true, items: [
     ['firmware', 'Firmware'],       // 1 — önce yazılım
     ['plane', 'Airframe'],          // 2 — çerçeve / uçak tipi
-    ['rc', 'Alıcı'],                // 3 — alıcı protokolü
-    ['radio', 'Radyo'],             // 4 — RC kalibrasyonu
-    ['servo', 'Servo Çıkış'],       // 5 — çıkış eşleme
-    ['accel', 'İvmeölçer'],         // 6 — ivmeölçer
-    ['compass', 'Pusula'],          // 7 — pusula
-    ['modes', 'Uçuş Modları'],      // 8 — uçuş modları
-    ['failsafe', 'Failsafe'],       // 9 — güvenlik
+    ['orient', 'Otopilot Yerleşimi'], // 3 — kart montaj yönü (kalibrasyonlardan önce)
+    ['rc', 'Alıcı'],                // 4 — alıcı protokolü
+    ['radio', 'Radyo'],             // 5 — RC kalibrasyonu
+    ['servo', 'Servo Çıkış'],       // 6 — çıkış eşleme
+    ['accel', 'İvmeölçer'],         // 7 — ivmeölçer
+    ['compass', 'Pusula'],          // 8 — pusula
+    ['modes', 'Uçuş Modları'],      // 9 — uçuş modları
+    ['failsafe', 'Failsafe'],       // 10 — güvenlik
   ] },
   { title: 'Donanım', items: [
     ['battery', 'Pil / Güç'], ['gps', 'GPS'], ['serial', 'Seri Portlar'], ['sik', 'SiK Radyo'],
-    ['gimbal', 'Gimbal / Kamera'], ['flow', 'Optik Akış'], ['adsb', 'ADS-B'], ['osd', 'OSD'],
+    ['lidar', 'Lidar / Mesafe'], ['flow', 'Optik Akış'], ['adsb', 'ADS-B'], ['osd', 'OSD'],
   ] },
   { title: 'Ayar', items: [
     ['tune', 'PID Ayar'], ['tecs', 'TECS (Uçak)'],
@@ -79,20 +82,21 @@ export function SetupView({ gcs, params, setParams, telemetry }: Props) {
         {section === 'params' && <ParamsView gcs={gcs} params={params} setParams={setParams} />}
         {section === 'firmware' && <FirmwareView />}
         {section === 'accel' && <AccelCalView gcs={gcs} />}
-        {section === 'compass' && <CompassCalView gcs={gcs} />}
+        {section === 'compass' && <CompassCalView gcs={gcs} telemetry={telemetry} params={params} setParams={setParams} />}
         {section === 'radio' && <RadioCalView gcs={gcs} />}
         {section === 'rc' && <RCView gcs={gcs} params={params} setParams={setParams} />}
         {section === 'modes' && <FlightModesView gcs={gcs} params={params} setParams={setParams} />}
         {section === 'failsafe' && <FailsafeView gcs={gcs} params={params} setParams={setParams} telemetry={telemetry} />}
         {section === 'servo' && <ServoOutputView gcs={gcs} params={params} setParams={setParams} />}
         {section === 'plane' && <PlaneSetupView gcs={gcs} params={params} setParams={setParams} />}
+        {section === 'orient' && <BoardOrientationView gcs={gcs} params={params} setParams={setParams} telemetry={telemetry} />}
         {section === 'battery' && <BatterySetupView gcs={gcs} params={params} setParams={setParams} telemetry={telemetry} />}
         {section === 'tune' && <PidTuneView gcs={gcs} params={params} setParams={setParams} telemetry={telemetry} />}
         {section === 'tecs' && <TecsTuneView gcs={gcs} params={params} setParams={setParams} telemetry={telemetry} />}
         {section === 'serial' && <SerialPortsView gcs={gcs} params={params} setParams={setParams} />}
         {section === 'osd' && <OSDView gcs={gcs} params={params} setParams={setParams} />}
         {section === 'gps' && <ParamConfigView gcs={gcs} params={params} setParams={setParams} title={t('GPS')} note={t('GPS tipi, ikinci GPS, otomatik seçim/blend ve öncelik.')} fields={GPS_FIELDS} />}
-        {section === 'gimbal' && <ParamConfigView gcs={gcs} params={params} setParams={setParams} title={t('Gimbal / Kamera')} note={t('Gimbal tipi, varsayılan mod, eksen limitleri ve kamera tetik tipi.')} fields={GIMBAL_FIELDS} />}
+        {section === 'lidar' && <LidarSetupView gcs={gcs} params={params} setParams={setParams} />}
         {section === 'flow' && <ParamConfigView gcs={gcs} params={params} setParams={setParams} title={t('Optik Akış')} note={t('Optik akış sensörü tipi, yönelim ve konum.')} fields={FLOW_FIELDS} />}
         {section === 'adsb' && <ParamConfigView gcs={gcs} params={params} setParams={setParams} title={t('ADS-B')} note={t('ADS-B alıcı tipi ve çarpışma önleme (avoidance).')} fields={ADSB_FIELDS} />}
         {section === 'sik' && <SikRadioView gcs={gcs} />}

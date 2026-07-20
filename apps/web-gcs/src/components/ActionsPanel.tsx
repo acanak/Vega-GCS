@@ -1,26 +1,23 @@
 import { useState } from 'react';
-import { vehicleModeIds, quickModes } from '@wmp/protocol';
+import { vehicleModeIds, quickModes, MAV_CMD_PREFLIGHT_CALIBRATION } from '@wmp/protocol';
 import type { GcsConnection } from '../gcs/protocol-shared';
 import { useT } from '../gcs/i18n';
 import { NumberPromptModal } from './NumberPromptModal';
 
 // MAV_CMD kodlari (constants'ta tanimli degil, dogrudan)
 const CMD_NAV_TAKEOFF = 22;
-const CMD_DO_CHANGE_SPEED = 178;
 
 interface Props {
   connRef: { current: GcsConnection | null };
   connected: boolean;
-  onOpenReplay?: () => void;
   vehicleType: number;
 }
 
-export function ActionsPanel({ connRef, connected, onOpenReplay, vehicleType }: Props) {
+export function ActionsPanel({ connRef, connected, vehicleType }: Props) {
   const t = useT();
   const [mode, setMode] = useState('GUIDED');
   const [takeoffAlt, setTakeoffAlt] = useState(10);
   const [takeoffOpen, setTakeoffOpen] = useState(false);
-  const [speed, setSpeed] = useState(5);
   const [msg, setMsg] = useState<string | null>(null);
   const conn = (): GcsConnection | null => connRef.current;
 
@@ -41,7 +38,14 @@ export function ActionsPanel({ connRef, connected, onOpenReplay, vehicleType }: 
     window.setTimeout(() => { c.commandLong(CMD_NAV_TAKEOFF, [0, 0, 0, 0, 0, 0, takeoffAlt]); }, 1200);
     flash('GUIDED + ARM + ' + t('Kalkış') + ' ' + takeoffAlt + ' m');
   };
-  const changeSpeed = (): void => { conn()?.commandLong(CMD_DO_CHANGE_SPEED, [1, speed, -1, 0, 0, 0, 0]); flash(t('Hız') + ' → ' + speed + ' m/s'); };
+  // Preflight (pre-arm) kalibrasyon: gyro (param1) + barometre (param3). Araç sabit ve DISARM olmalı.
+  const preflightCal = (): void => {
+    const c = conn();
+    if (!c) return;
+    if (c.telemetry.armed) { flash(t('ARM’lıyken kalibrasyon yapılamaz')); return; }
+    c.commandLong(MAV_CMD_PREFLIGHT_CALIBRATION, [1, 0, 1, 0, 0, 0, 0]);
+    flash(t('Preflight kalibrasyon gönderildi — aracı sabit tutun'));
+  };
 
   return (
     <div className="card actions-panel">
@@ -65,18 +69,10 @@ export function ActionsPanel({ connRef, connected, onOpenReplay, vehicleType }: 
           <button className="btn-ghost" disabled={!connected} onClick={() => setTakeoffOpen(true)}>{t('Kalkış')}</button>
         </div>
 
-        <div className="act-row">
-          <button className="btn-ghost" disabled={!connected} onClick={changeSpeed}>{t('Hız')}</button>
-          <input className="act-num" type="number" disabled={!connected} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
-          <span className="p-units">m/s</span>
-        </div>
-        <p className="setup-desc act-hint">{t('Guided git için haritada bir noktaya sağ tıklayın. Kalkış GUIDED modda çalışır.')}</p>
-
-        {onOpenReplay && (
-          <div className="act-replay">
-            <button className="btn-ghost" onClick={onOpenReplay}>▶ {t('Kayıt oynat (.tlog / .bin)')}</button>
-          </div>
-        )}
+        <button className="btn-ghost act-precal" disabled={!connected} onClick={preflightCal}
+          title={t('Gyro + barometreyi yeniden sıfırlar. Araç yerde, sabit ve DISARM olmalı.')}>
+          ⚙ {t('Preflight Kalibrasyon')}
+        </button>
       </div>
 
       {takeoffOpen && (

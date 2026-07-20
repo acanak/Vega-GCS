@@ -18,15 +18,6 @@ const GPS_AUTO_SWITCH: readonly CodeLabel[] = [
 ];
 const GPS_PRIMARY: readonly CodeLabel[] = [{ code: 0, label: 'First GPS' }, { code: 1, label: 'Second GPS' }];
 
-const MOUNT_TYPE: readonly CodeLabel[] = [
-  { code: 0, label: 'None' }, { code: 1, label: 'Servo' }, { code: 2, label: '3DR Solo' }, { code: 3, label: 'Alexmos Serial' },
-  { code: 4, label: 'SToRM32 MAVLink' }, { code: 5, label: 'SToRM32 Serial' }, { code: 6, label: 'Gremsy' },
-  { code: 7, label: 'BrushlessPWM' }, { code: 8, label: 'Siyi' }, { code: 9, label: 'Scripting' },
-];
-const MOUNT_MODE: readonly CodeLabel[] = [
-  { code: 0, label: 'Retracted' }, { code: 1, label: 'Neutral' }, { code: 2, label: 'MAVLink Targeting' },
-  { code: 3, label: 'RC Targeting' }, { code: 4, label: 'GPS Point' }, { code: 6, label: 'Home Location' },
-];
 const ADSB_TYPE: readonly CodeLabel[] = [
   { code: 0, label: 'Disabled' }, { code: 1, label: 'uAvionix-MAVLink' }, { code: 2, label: 'Sagetech' },
   { code: 3, label: 'uAvionix-UCP' }, { code: 4, label: 'Sagetech MX Series' },
@@ -46,17 +37,6 @@ export const GPS_FIELDS: readonly CfgField[] = [
   { name: 'GPS_PRIMARY', label: 'Primary GPS', values: GPS_PRIMARY },
   { name: 'GPS_RATE_MS', label: 'GPS 1 rate', unit: 'ms' },
   { name: 'GPS_RATE_MS2', label: 'GPS 2 rate', unit: 'ms' },
-];
-export const GIMBAL_FIELDS: readonly CfgField[] = [
-  { name: 'MNT1_TYPE', label: 'Gimbal type', values: MOUNT_TYPE },
-  { name: 'MNT_TYPE', label: 'Gimbal type', values: MOUNT_TYPE },
-  { name: 'MNT1_DEFLT_MODE', label: 'Default mode', values: MOUNT_MODE },
-  { name: 'MNT_DEFLT_MODE', label: 'Default mode', values: MOUNT_MODE },
-  { name: 'MNT1_RC_RATE', label: 'RC control rate', unit: '°/s' },
-  { name: 'MNT1_ROLL_MIN', label: 'Roll min', unit: '°' }, { name: 'MNT1_ROLL_MAX', label: 'Roll max', unit: '°' },
-  { name: 'MNT1_PITCH_MIN', label: 'Pitch min', unit: '°' }, { name: 'MNT1_PITCH_MAX', label: 'Pitch max', unit: '°' },
-  { name: 'MNT1_YAW_MIN', label: 'Yaw min', unit: '°' }, { name: 'MNT1_YAW_MAX', label: 'Yaw max', unit: '°' },
-  { name: 'CAM1_TYPE', label: 'Camera type' }, { name: 'CAM_TRIGG_TYPE', label: 'Camera trigger type' },
 ];
 export const ADSB_FIELDS: readonly CfgField[] = [
   { name: 'ADSB_TYPE', label: 'ADS-B receiver', values: ADSB_TYPE },

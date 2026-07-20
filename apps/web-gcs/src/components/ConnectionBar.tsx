@@ -16,6 +16,9 @@ const LABEL: Record<ConnStatus, string> = {
   error: 'FAULT',
 };
 
+// Yaygın seri hızlar: USB doğrudan 115200/921600, telemetri radyoları 57600
+const BAUDS = [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 1500000] as const;
+
 export function ConnectionBar({ status, error, onConnect, onDisconnect }: Props) {
   const t = useT();
   const [kind, setKind] = useState<ConnectKind>('webserial');
@@ -37,14 +40,9 @@ export function ConnectionBar({ status, error, onConnect, onDisconnect }: Props)
       {kind === 'websocket' ? (
         <input value={url} onChange={(e) => setUrl(e.target.value)} disabled={busy} aria-label="WebSocket URL" />
       ) : (
-        <input
-          className="baud"
-          type="number"
-          value={baud}
-          onChange={(e) => setBaud(Number(e.target.value))}
-          disabled={busy}
-          aria-label="Baud"
-        />
+        <select className="baud" value={baud} onChange={(e) => setBaud(Number(e.target.value))} disabled={busy} aria-label="Baud">
+          {BAUDS.map((b) => <option key={b} value={b}>{b}</option>)}
+        </select>
       )}
       {busy ? (
         <button className="btn-disarm" onClick={() => void onDisconnect()}>{t('Bağlantıyı kes')}</button>
