@@ -214,10 +214,12 @@ export const OSD_TEMPLATES: readonly OsdTemplate[] = [
   },
 ];
 
-/** Ekran çözünürlüğü OSD<n>_TXT_RES; grid boyutunu belirler. */
-export interface OsdRes { code: number; label: string; cols: number; rows: number; }
+/** Ekran çözünürlüğü OSD<n>_TXT_RES; grid boyutunu belirler.
+ * aspect: gözlükteki FİZİKSEL ekran oranı (CSS aspect-ratio). Karakter ızgarası
+ * bu orana yayılır — hücreler kare değildir (örn. 16:9'da 50×18 → hücre ~0.64). */
+export interface OsdRes { code: number; label: string; cols: number; rows: number; aspect: string; }
 export const OSD_RES: readonly OsdRes[] = [
-  { code: 0, label: 'SD 30×16', cols: 30, rows: 16 },
-  { code: 1, label: 'HD 50×18', cols: 50, rows: 18 },
-  { code: 2, label: 'HD 60×22 (4.6+)', cols: 60, rows: 22 },
+  { code: 0, label: 'SD 30×16', cols: 30, rows: 16, aspect: '4 / 3' },   // analog PAL/NTSC
+  { code: 1, label: 'HD 50×18', cols: 50, rows: 18, aspect: '16 / 9' },  // DJI / Walksnail / HDZero
+  { code: 2, label: 'HD 60×22 (4.6+)', cols: 60, rows: 22, aspect: '16 / 9' },
 ];
