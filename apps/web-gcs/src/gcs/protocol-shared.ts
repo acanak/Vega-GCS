@@ -24,7 +24,7 @@ export interface GcsConnection {
 }
 
 export type MainToWorker =
-  | { type: 'config'; gcsSystemId?: number; gcsComponentId?: number; requestStreamHz?: number; heartbeatHz?: number }
+  | { type: 'config'; gcsSystemId?: number; gcsComponentId?: number; requestStreamHz?: number; heartbeatHz?: number; logLabel?: string }
   | { type: 'rx'; bytes: Uint8Array }
   | { type: 'arm'; force: boolean }
   | { type: 'disarm'; force: boolean }

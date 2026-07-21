@@ -10,6 +10,8 @@ export interface WorkerConnectionOptions {
   gcsComponentId?: number;
   heartbeatHz?: number;
   requestStreamHz?: number;
+  /** tlog oturum etiketi (bağlantı türü/URL) — Loglar ekranındaki listede görünür. */
+  logLabel?: string;
 }
 
 function applySnapshot(t: VehicleTelemetry, s: VehicleTelemetry): void {
@@ -62,6 +64,7 @@ export class WorkerConnection implements GcsConnection {
       gcsComponentId: this.opts.gcsComponentId,
       requestStreamHz: this.opts.requestStreamHz,
       heartbeatHz: this.opts.heartbeatHz ?? 1,
+      logLabel: this.opts.logLabel,
     });
     await this.link.open();
     this.unsubData = this.link.onData((chunk) => this.post({ type: 'rx', bytes: chunk }));

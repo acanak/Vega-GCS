@@ -1,6 +1,7 @@
 // Web Worker: MAVLink parse/CRC/decode + protokol durumu + gorev protokolu burada calisir.
 import { ProtocolEngine } from '@wmp/protocol';
 import type { MainToWorker, WorkerToMain } from './protocol-shared';
+import { FlightLogWriter } from './flightlog';
 
 interface WorkerCtx {
   postMessage(message: WorkerToMain): void;
@@ -9,6 +10,7 @@ interface WorkerCtx {
 const ctx = self as unknown as WorkerCtx;
 
 let engine: ProtocolEngine | null = null;
+let flightLog: FlightLogWriter | null = null;
 const msgSubs = new Map<number, () => void>();
 let heartbeatHz = 1;
 let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
@@ -33,11 +35,15 @@ ctx.addEventListener('message', (ev) => {
   switch (msg.type) {
     case 'config':
       heartbeatHz = msg.heartbeatHz ?? 1;
+      // Telemetri kaydı (tlog): gelen + giden tüm çerçeveler IndexedDB'ye yazılır.
+      // Kayıt başarısız olsa bile bağlantı akışı etkilenmez.
+      void FlightLogWriter.start(msg.logLabel ?? 'link').then((w) => { flightLog = w; }).catch(() => { flightLog = null; });
       engine = new ProtocolEngine({
         gcsSystemId: msg.gcsSystemId,
         gcsComponentId: msg.gcsComponentId,
         requestStreamHz: msg.requestStreamHz,
-        emit: (frame) => ctx.postMessage({ type: 'tx', bytes: frame }),
+        emit: (frame) => { flightLog?.append(frame); ctx.postMessage({ type: 'tx', bytes: frame }); },
+        onRawFrame: (raw) => flightLog?.append(raw),
       });
       engine.onConnected((sysid, compid) => ctx.postMessage({ type: 'connected', sysid, compid }));
       engine.onStatusText((severity, text) => ctx.postMessage({ type: 'statustext', severity, text }));
@@ -138,6 +144,8 @@ ctx.addEventListener('message', (ev) => {
     case 'close':
       stopTimers();
       engine = null;
+      void flightLog?.close();
+      flightLog = null;
       break;
   }
 });
