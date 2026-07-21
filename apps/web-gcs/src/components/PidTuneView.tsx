@@ -6,13 +6,35 @@ import { useT } from '../gcs/i18n';
 
 const R2D = 180 / Math.PI;
 interface PidGroup { title: string; params: string[] }
-// Kopter (ATC_*): rate + angle P
+// Kopter — Mission Planner "Extended Tuning" paritesi (parametre adları verbatim;
+// yalnızca araçta var olanlar gösterilir, IMAX/filtreler dahil).
 const COPTER_GROUPS: PidGroup[] = [
-  { title: 'Roll hız (rate)', params: ['ATC_RAT_RLL_P', 'ATC_RAT_RLL_I', 'ATC_RAT_RLL_D'] },
-  { title: 'Pitch hız (rate)', params: ['ATC_RAT_PIT_P', 'ATC_RAT_PIT_I', 'ATC_RAT_PIT_D'] },
-  { title: 'Yaw hız (rate)', params: ['ATC_RAT_YAW_P', 'ATC_RAT_YAW_I', 'ATC_RAT_YAW_D'] },
-  { title: 'Açı (angle) P', params: ['ATC_ANG_RLL_P', 'ATC_ANG_PIT_P', 'ATC_ANG_YAW_P'] },
+  { title: 'Roll hız (rate)', params: ['ATC_RAT_RLL_P', 'ATC_RAT_RLL_I', 'ATC_RAT_RLL_D', 'ATC_RAT_RLL_IMAX', 'ATC_RAT_RLL_FLTD', 'ATC_RAT_RLL_FLTT'] },
+  { title: 'Pitch hız (rate)', params: ['ATC_RAT_PIT_P', 'ATC_RAT_PIT_I', 'ATC_RAT_PIT_D', 'ATC_RAT_PIT_IMAX', 'ATC_RAT_PIT_FLTD', 'ATC_RAT_PIT_FLTT'] },
+  { title: 'Yaw hız (rate)', params: ['ATC_RAT_YAW_P', 'ATC_RAT_YAW_I', 'ATC_RAT_YAW_D', 'ATC_RAT_YAW_IMAX', 'ATC_RAT_YAW_FLTE', 'ATC_RAT_YAW_FLTT'] },
+  { title: 'Açı (angle) P · RC hissi', params: ['ATC_ANG_RLL_P', 'ATC_ANG_PIT_P', 'ATC_ANG_YAW_P', 'ATC_INPUT_TC'] },
+  { title: 'İrtifa tutma (Z)', params: ['PSC_POSZ_P', 'PSC_VELZ_P'] },
+  { title: 'Gaz ivmesi (accel Z)', params: ['PSC_ACCZ_P', 'PSC_ACCZ_I', 'PSC_ACCZ_D', 'PSC_ACCZ_IMAX'] },
+  { title: 'Pozisyon / hız XY', params: ['PSC_POSXY_P', 'PSC_VELXY_P', 'PSC_VELXY_I', 'PSC_VELXY_D'] },
+  { title: 'Görev hızları (WPNAV)', params: ['WPNAV_SPEED', 'WPNAV_SPEED_UP', 'WPNAV_SPEED_DN', 'WPNAV_RADIUS', 'WPNAV_ACCEL'] },
+  { title: 'Loiter', params: ['LOIT_SPEED', 'LOIT_ACC_MAX', 'LOIT_BRK_ACCEL', 'LOIT_BRK_DELAY', 'LOIT_ANG_MAX'] },
 ];
+// TUNE — RC ayar düğmesi (MP "CH6 Opt" karşılığı): uçuşta bir kanalla canlı parametre ayarı.
+// Kod → etiket (ArduCopter TUNE parametre listesinden yaygın seçenekler).
+const TUNE_OPTIONS: ReadonlyArray<[number, string]> = [
+  [0, 'Kapalı'],
+  [1, 'Stabilize Roll/Pitch kP'], [3, 'Stabilize Yaw kP'],
+  [4, 'Rate Roll/Pitch kP'], [5, 'Rate Roll/Pitch kI'], [21, 'Rate Roll/Pitch kD'],
+  [6, 'Rate Yaw kP'], [26, 'Rate Yaw kD'], [56, 'Rate Yaw filtresi'],
+  [14, 'AltHold kP'], [7, 'Gaz hızı (throttle rate) kP'],
+  [34, 'Gaz ivmesi kP'], [35, 'Gaz ivmesi kI'], [36, 'Gaz ivmesi kD'],
+  [12, 'Loiter pozisyon kP'], [22, 'Hız XY kP'], [28, 'Hız XY kI'],
+  [10, 'WP hızı'], [39, 'Circle dönüş hızı'],
+  [25, 'Acro Roll/Pitch kP'], [40, 'Acro Yaw kP'], [45, 'RC hissi (INPUT_TC)'],
+  [55, 'Motor yaw payı'], [38, 'Pusula sapması (declination)'],
+];
+// AUTOTUNE_AXES bit maskesi
+const AUTOTUNE_AXES_BITS: ReadonlyArray<[number, string]> = [[1, 'Roll'], [2, 'Pitch'], [4, 'Yaw'], [8, 'Yaw D']];
 // Uçak (ArduPlane): sabit-kanat rate PID'leri + zaman sabiti (kaynak: APM_Control)
 const PLANE_GROUPS: PidGroup[] = [
   { title: 'Roll hız (rate)', params: ['RLL_RATE_P', 'RLL_RATE_I', 'RLL_RATE_D', 'RLL_RATE_FF'] },
@@ -122,6 +144,12 @@ export function PidTuneView({ gcs, params, setParams, telemetry }: {
   const fcLabel = fc === 'plane' ? t('Uçak') : fc === 'rover' ? t('Rover') : t('Kopter');
   const hasPids = groups.some((g) => g.params.some((n) => pget(n)));
 
+  // Kopter-özel: AUTOTUNE eksen maskesi ve TUNE (RC ayar düğmesi)
+  const axesEntry = fc === 'copter' ? pget('AUTOTUNE_AXES') : undefined;
+  const axesVal = Math.round(axesEntry?.value ?? 0);
+  const tuneEntry = fc === 'copter' ? pget('TUNE') : undefined;
+  const num = (v: string): number => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
+
   return (
     <div className="setup-panel setup-wide">
       <div className="card">
@@ -140,7 +168,44 @@ export function PidTuneView({ gcs, params, setParams, telemetry }: {
               </button>
               <span className="setup-desc">{t('Havadayken AUTOTUNE moduna alın; ayar bitince güvenli ARM/land ile kaydedin (ilerleme mesajları durum akışında).')}</span>
             </div>
+            {axesEntry && (
+              <div className="act-row" style={{ marginTop: 6 }}>
+                <span className="setup-desc">{t('Eksenler:')}</span>
+                {AUTOTUNE_AXES_BITS.map(([bit, label]) => (
+                  <label key={bit} className="chk">
+                    <input type="checkbox" disabled={!connected} checked={(axesVal & bit) > 0}
+                      onChange={(e) => write('AUTOTUNE_AXES', e.target.checked ? axesVal | bit : axesVal & ~bit)} />
+                    <span>{label}</span>
+                  </label>
+                ))}
+                <span className="p-units">AUTOTUNE_AXES = {axesVal}</span>
+              </div>
+            )}
           </section>
+
+          {tuneEntry && (
+            <section className="rc-sec">
+              <div className="rc-sec-hd">{t('RC ayar düğmesi (TUNE)')}</div>
+              <p className="setup-desc">{t('Kumandadaki bir potansiyometre kanalıyla uçuşta canlı parametre ayarı. Kanal, RCn_OPTION = 219 (Transmitter Tuning) ile seçilir; düğmenin uçları TUNE_MIN/TUNE_MAX değerlerine eşlenir.')}</p>
+              <div className="act-row">
+                <select disabled={!connected} value={Math.round(tuneEntry.value)} onChange={(e) => write('TUNE', Number(e.target.value))}>
+                  {TUNE_OPTIONS.map(([code, label]) => <option key={code} value={code}>{code} — {t(label)}</option>)}
+                </select>
+                {pget('TUNE_MIN') && (
+                  <label className="chk plane-fp">
+                    <span>TUNE_MIN</span>
+                    <input disabled={!connected} value={pget('TUNE_MIN')!.value} onChange={(e) => write('TUNE_MIN', num(e.target.value))} />
+                  </label>
+                )}
+                {pget('TUNE_MAX') && (
+                  <label className="chk plane-fp">
+                    <span>TUNE_MAX</span>
+                    <input disabled={!connected} value={pget('TUNE_MAX')!.value} onChange={(e) => write('TUNE_MAX', num(e.target.value))} />
+                  </label>
+                )}
+              </div>
+            </section>
+          )}
 
           <section className="rc-sec">
             <div className="rc-sec-hd">{t('PID parametreleri')}</div>

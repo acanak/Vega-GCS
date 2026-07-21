@@ -185,7 +185,7 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
   const pct = T && T.battery.remaining >= 0 ? T.battery.remaining : 68;
   const sats = T ? T.gps.satellites : 12;
   const hdg = Math.round(T && isF(T.position.hdg) ? T.position.hdg : 125);
-  const mode = T ? modeName(T.vehicleType, T.customMode) : 'FBWA';
+  const mode = T ? modeName(T.vehicleType, T.customMode) : 'STABILIZE'; // örnek: hem kopter hem uçakta var olan mod
   const roll = T ? T.attitude.roll : 0.12;
   const pitch = T ? T.attitude.pitch : -0.04;
   const cells = Math.max(1, Math.round(volt / 3.8));

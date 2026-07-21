@@ -83,6 +83,55 @@ function buildCraft(): Face[] {
 
 export const CRAFT_FACES: readonly Face[] = buildCraft();
 
+// --- Multirotor (X-quad) geometrisi ----------------------------------------
+// Basit kutu yardımcısı: [x0,x1, y0,y1, z0,z1] → 6 yüz (z aşağı pozitif).
+function box(x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, tag: FaceTag): Face[] {
+  return [
+    quad([x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], tag), // üst (z0 yukarıda: z0 < z1)
+    quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], tag), // alt
+    quad([x0, y0, z0], [x0, y1, z0], [x0, y1, z1], [x0, y0, z1], tag),
+    quad([x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [x1, y0, z1], tag),
+    quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], tag),
+    quad([x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1], tag),
+  ];
+}
+
+function buildQuadCraft(): Face[] {
+  const f: Face[] = [];
+  // Merkez gövde
+  f.push(...box(-0.5, 0.6, -0.45, 0.45, -0.2, 0.14, 'hull'));
+  // 4 çapraz kol (X çerçeve) + uçlarda motor kutuları. FRD: +X burun, +Y sağ.
+  const R_ARM = 1.6, W = 0.09; // kol uzunluğu ve yarı kalınlığı
+  for (const [sx, sy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]] as Array<[number, number]>) {
+    const c = Math.SQRT1_2; // 45°
+    const dx = sx * c, dy = sy * c;          // kol yönü
+    const px = -sy * c * W, py = sx * c * W; // kola dik yarı-genişlik
+    const i = 0.42, o = R_ARM;               // iç/dış uzaklık
+    // düz kol plakası (üst yüzey, hafif yukarıda)
+    f.push(quad(
+      [i * dx - px, i * dy - py, -0.05], [i * dx + px, i * dy + py, -0.05],
+      [o * dx + px, o * dy + py, -0.05], [o * dx - px, o * dy - py, -0.05], 'hull',
+    ));
+    // motor kutusu (kol ucunda)
+    const mx = o * dx, my = o * dy;
+    f.push(...box(mx - 0.24, mx + 0.24, my - 0.24, my + 0.24, -0.26, 0.0, 'hull'));
+    // pervane diski (motor üstünde yarı saydam kare — 'wing' etiketi düşük alfa verir)
+    f.push(quad([mx - 0.55, my, -0.28], [mx, my - 0.55, -0.28], [mx + 0.55, my, -0.28], [mx, my + 0.55, -0.28], 'wing'));
+  }
+  return f;
+}
+
+export const QUAD_FACES: readonly Face[] = buildQuadCraft();
+
+// Araç sınıfına göre 3D model: yüzeyler + burun okunun başlangıç/bitiş X'i.
+export interface CraftModel { faces: readonly Face[]; nose: [number, number] }
+export const PLANE_CRAFT: CraftModel = { faces: CRAFT_FACES, nose: [2.55, 3.2] };
+export const QUAD_CRAFT: CraftModel = { faces: QUAD_FACES, nose: [0.66, 1.5] };
+/** MAV_TYPE'a göre model seç (heartbeat yoksa/vehicleType 0 ise uçak — eski davranış). */
+export function craftModelFor(frame: 'copter' | 'plane' | 'rover' | null): CraftModel {
+  return frame === 'copter' ? QUAD_CRAFT : PLANE_CRAFT;
+}
+
 // Pusula küresi içinde canlı duruş: uçağı verilen tutumla, kürenin görünüm
 // dönüşünü (rotX/rotY) paylaşarak ortografik çizer. Nokta bulutunun ALTINA
 // çizilmelidir (yarı saydam dolgu, örnekleri kapatmaz).
@@ -92,6 +141,7 @@ export function drawCraftInSphere(
   att: { roll: number; pitch: number; yaw: number },
   rotX: number, rotY: number,
   rgb: [number, number, number], accent: [number, number, number],
+  model: CraftModel = PLANE_CRAFT,
 ): void {
   const qVeh = qEuler(att.roll, att.pitch, att.yaw);
   const s = R * 0.19;
@@ -106,7 +156,7 @@ export function drawCraftInSphere(
   };
   interface DF { pts: Array<[number, number, number]>; d: number; b: number; wing: boolean }
   const list: DF[] = [];
-  for (const f of CRAFT_FACES) {
+  for (const f of model.faces) {
     const pts = f.p.map(proj);
     const [p0, p1, p2] = pts as [[number, number, number], [number, number, number], [number, number, number]];
     // ekran uzayında normal-z benzeri parlaklık (basit sabit ışık)
@@ -127,7 +177,7 @@ export function drawCraftInSphere(
     ctx.stroke();
   }
   // Burun yönü vurgusu
-  const a0 = proj([2.55, 0, 0]), a1 = proj([3.2, 0, 0]);
+  const a0 = proj([model.nose[0], 0, 0]), a1 = proj([model.nose[1], 0, 0]);
   ctx.strokeStyle = ctx.fillStyle = `rgba(${accent.join(',')},0.9)`;
   ctx.lineWidth = 1.3;
   ctx.beginPath(); ctx.moveTo(a0[0], a0[1]); ctx.lineTo(a1[0], a1[1]); ctx.stroke();

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ParamEntry, VehicleTelemetry } from '@wmp/protocol';
-import { MSG, MAV_CMD_SET_MESSAGE_INTERVAL } from '@wmp/protocol';
+import { MSG, MAV_CMD_SET_MESSAGE_INTERVAL, frameClass } from '@wmp/protocol';
 import type { UseGcs } from '../gcs/useGcs';
 import { useT } from '../gcs/i18n';
 import type { V3, Quat, Face, FaceTag } from '../gcs/craft3d';
-import { D2R, qMul, qAxis, qRot, qDot, qSlerp, qEuler, quad, CRAFT_FACES } from '../gcs/craft3d';
+import { D2R, qMul, qAxis, qRot, qDot, qSlerp, qEuler, quad, CRAFT_FACES, QUAD_FACES } from '../gcs/craft3d';
 
 // ---------------------------------------------------------------------------
 // Kart yönelimi (AHRS_ORIENTATION) kurulum ekranı.
@@ -106,7 +106,9 @@ function buildBoard(): Face[] {
 }
 
 const BOARD_FACES = buildBoard();
-const ALL_FACES = CRAFT_FACES.concat(BOARD_FACES);
+// Araç sınıfına göre gövde + kart yüzeyleri (kopter: quad; diğerleri: uçak)
+const PLANE_ALL = CRAFT_FACES.concat(BOARD_FACES);
+const QUAD_ALL = QUAD_FACES.concat(BOARD_FACES);
 
 // --- Tema paleti -----------------------------------------------------------
 interface Pal { ink: V3; line: V3; data: V3; go: V3; warn: V3; bgTop: string; bgBot: string; light: boolean }
@@ -147,7 +149,7 @@ const faceStyle = (tag: FaceTag, pal: Pal): { c: V3; a: number; ea: number } => 
 interface Cam { az: number; el: number; dist: number }
 export const DEFAULT_CAM: Cam = { az: -0.62, el: 0.42, dist: 8.5 };
 
-function drawScene(cv: HTMLCanvasElement, qBoard: Quat, qVeh: Quat, cam: Cam, pal: Pal, noseLabel: string): void {
+function drawScene(cv: HTMLCanvasElement, qBoard: Quat, qVeh: Quat, cam: Cam, pal: Pal, noseLabel: string, faces: readonly Face[] = PLANE_ALL, nose: [number, number] = [2.75, 3.5]): void {
   const ctx = cv.getContext('2d');
   if (!ctx) return;
   const dpr = window.devicePixelRatio || 1;
@@ -205,7 +207,7 @@ function drawScene(cv: HTMLCanvasElement, qBoard: Quat, qVeh: Quat, cam: Cam, pa
   interface DrawFace { pts: Array<[number, number, number]>; tag: FaceTag; depth: number; bright: number }
   const L: V3 = [-0.45, 0.35, 0.82]; // ışık yönü (dünya, z yukarı)
   const list: DrawFace[] = [];
-  for (const f of ALL_FACES) {
+  for (const f of faces) {
     const wpts: V3[] = f.p.map((p) => {
       let v: V3 = p;
       if (f.board) { v = qRot(qBoard, v); v = [v[0] + BOARD_POS[0], v[1] + BOARD_POS[1], v[2] + BOARD_POS[2]]; }
@@ -239,8 +241,8 @@ function drawScene(cv: HTMLCanvasElement, qBoard: Quat, qVeh: Quat, cam: Cam, pa
   }
 
   // Burun yönü göstergesi
-  const a0 = proj(toWorld(qRot(qVeh, [2.75, 0, 0])));
-  const a1 = proj(toWorld(qRot(qVeh, [3.5, 0, 0])));
+  const a0 = proj(toWorld(qRot(qVeh, [nose[0], 0, 0])));
+  const a1 = proj(toWorld(qRot(qVeh, [nose[1], 0, 0])));
   ctx.strokeStyle = `rgba(${pal.data.join(',')},0.85)`;
   ctx.fillStyle = `rgba(${pal.data.join(',')},0.85)`;
   ctx.lineWidth = 1.4;
@@ -298,9 +300,15 @@ export function BoardOrientationView({ gcs, params, setParams, telemetry }: {
   const attRef = useRef<{ roll: number; pitch: number; yaw: number } | null>(null);
   const dragRef = useRef<{ x: number; y: number } | null>(null);
   const palRef = useRef<Pal | null>(null);
+  const facesRef = useRef<readonly Face[]>(PLANE_ALL);
+  const noseRef = useRef<[number, number]>([2.75, 3.5]);
 
   liveRef.current = live;
   attRef.current = telemetry?.attitude ?? null;
+  // Araç sınıfına göre gövde modeli (heartbeat yoksa uçak — eski davranış)
+  const isCopter = !!telemetry && telemetry.connected && telemetry.vehicleType > 0 && frameClass(telemetry.vehicleType) === 'copter';
+  facesRef.current = isCopter ? QUAD_ALL : PLANE_ALL;
+  noseRef.current = isCopter ? [0.66, 1.5] : [2.75, 3.5];
 
   // İlk parametre değeri geldiğinde seçimi karttaki değerle başlat
   const initedRef = useRef(false);
@@ -346,7 +354,7 @@ export function BoardOrientationView({ gcs, params, setParams, telemetry }: {
         const att = liveRef.current ? attRef.current : null;
         const qVehTarget: Quat = att ? qEuler(att.roll, att.pitch, att.yaw) : [1, 0, 0, 0];
         qVehRef.current = qSlerp(qVehRef.current, qVehTarget, 1 - Math.exp(-dt * 10));
-        drawScene(cv, qDispRef.current, qVehRef.current, camRef.current, palRef.current ?? readPal(), t('Burun'));
+        drawScene(cv, qDispRef.current, qVehRef.current, camRef.current, palRef.current ?? readPal(), t('Burun'), facesRef.current, noseRef.current);
       }
       raf = requestAnimationFrame(tick);
     };
