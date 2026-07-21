@@ -1,7 +1,7 @@
 // Takilabilir baglanti katmani. Mission Planner'daki ICommsSerial'in web karsiligi:
 // tek bir cift yonlu bayt-kanali arayuzu; ustune MAVLink protokol motoru oturur.
 
-export type LinkKind = 'webserial' | 'websocket';
+export type LinkKind = 'webserial' | 'websocket' | 'udp' | 'tcp' | 'usbserial' | 'ble';
 
 export interface Link {
   readonly kind: LinkKind;

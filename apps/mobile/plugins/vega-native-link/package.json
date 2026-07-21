@@ -1,0 +1,22 @@
+{
+  "name": "vega-native-link",
+  "version": "1.0.0",
+  "description": "Vega GCS native taşıyıcılar: UDP, TCP, USB seri (Android OTG), BLE (NUS)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist/", "android/", "ios/", "VegaNativeLink.podspec"],
+  "scripts": {
+    "build": "tsc"
+  },
+  "capacitor": {
+    "ios": { "src": "ios" },
+    "android": { "src": "android" }
+  },
+  "peerDependencies": {
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/core": "^6.1.2",
+    "typescript": "^5.7.3"
+  }
+}

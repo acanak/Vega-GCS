@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
   - "!apps/desktop" # Electron uygulaması npm ile yönetilir (pnpm/electron-builder uyumu); workspace dışı
+  - "!apps/mobile"  # Capacitor uygulaması da npm ile yönetilir (cap CLI uyumu); workspace dışı
   - "packages/*"
   - "tools/*"
 

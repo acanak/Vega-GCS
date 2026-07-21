@@ -1008,3 +1008,14 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .orient-ctl-name { min-width: 38px; font: 700 10px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
 .orient-ctl button { font-family: var(--mono); padding: 7px 10px; }
 .orient-cur { font-family: var(--mono); font-size: 11px; color: var(--caution); }
+
+/* Görünüm düzeyi hata sınırı (ErrorBoundary) */
+.view-error { padding: 24px; max-width: 640px; margin: 0 auto; }
+
+/* Bağlantı hatası toast'ı — topbar'ın altında sabit, düzeni bozmaz */
+.conn-toast { position: fixed; top: 58px; right: 12px; z-index: 60; display: flex; align-items: flex-start; gap: 10px;
+  max-width: 420px; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--warn); border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.45); }
+.conn-toast-msg { color: var(--warn); font-size: 12px; font-family: var(--mono); line-height: 1.45; word-break: break-word; }
+.conn-toast-x { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 12px; padding: 0 2px; line-height: 1.4; }
+.conn-toast-x:hover { color: var(--ink); }

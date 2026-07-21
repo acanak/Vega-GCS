@@ -758,4 +758,14 @@ export const EN: Record<string, string> = {
   "Harmonic notch: gyroya ulaşan motor gürültüsünü hedefli süzer. INS_HNTCH_ENABLE = 1 yazıp parametreleri yeniden indirince alt ayarlar görünür.": "Harmonic notch: targeted filtering of motor noise reaching the gyro. Write INS_HNTCH_ENABLE = 1 and re-download parameters to reveal the sub-settings.",
   "Katlanır iniş takımı: SERVOn_FUNCTION = 29 (Landing Gear) atayın; irtifaya göre otomatik aç/kapa.": "Retractable landing gear: assign SERVOn_FUNCTION = 29 (Landing Gear); automatic deploy/retract by altitude.",
   "S = Simple (kontroller kalkıştaki yöne göre), SS = Super Simple (kontroller eve göre; GPS gerektirir). İşaretli pozisyonda etkindir.": "S = Simple (controls relative to takeoff heading), SS = Super Simple (controls relative to home; needs GPS). Active in the checked positions.",
+  // Telemetri kaydı (tlog)
+  "Telemetri kayıtları": "Telemetry recordings",
+  "Oynat": "Play",
+  // Hata sınırı
+  "Ekran hatası": "Screen error",
+  "Bu ekran bir hatayla karşılaştı; uygulamanın kalanı ve bağlantı çalışmaya devam ediyor.": "This screen hit an error; the rest of the app and the link keep running.",
+  "Yeniden dene": "Try again",
+  // Mobil taşıyıcılar
+  "UDP · WiFi telemetri": "UDP · WiFi telemetry",
+  "Dinlenecek yerel port": "Local port to listen on",
 };

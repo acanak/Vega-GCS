@@ -1,0 +1,8 @@
+# Capacitor tarafından üretilen platform projeleri (npx cap add ios/android ile oluşur).
+# İlk platform ekleyişte bu satırları silip projeleri commit'lemek de geçerli bir tercihtir;
+# şimdilik üretilebilir oldukları için dışarıda tutuluyor.
+# DİKKAT: kök-çıpalı (/) — plugins/vega-native-link/{ios,android} kaynakları commit'lenir!
+/ios/
+/android/
+node_modules/
+plugins/vega-native-link/dist/

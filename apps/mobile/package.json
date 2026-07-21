@@ -1,0 +1,24 @@
+{
+  "name": "@wmp/mobile",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Vega GCS mobil (Capacitor) — iOS / Android",
+  "scripts": {
+    "web:build": "npm --prefix ../.. exec -- pnpm --filter @wmp/web-gcs build",
+    "sync": "cap sync",
+    "add:ios": "cap add ios",
+    "add:android": "cap add android",
+    "open:ios": "cap open ios",
+    "open:android": "cap open android",
+    "run:android": "cap run android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2",
+    "vega-native-link": "file:./plugins/vega-native-link"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}

@@ -8,6 +8,7 @@ import type { ChartSeries } from './LogChart';
 import { LogTrackMap } from './LogTrackMap';
 import { Cesium3DReplay } from './Cesium3DReplay';
 import { useT } from '../gcs/i18n';
+import { TlogSessionList } from './TlogSessionList';
 
 const SEP = '::';
 const fmtSize = (n: number): string => (n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : n >= 1024 ? Math.round(n / 1024) + ' KB' : n + ' B');
@@ -166,6 +167,7 @@ export function LogView({ gcs, onReplay }: { gcs: UseGcs; onReplay?: (f: File) =
             </div>
           )}
         </div>
+        <TlogSessionList onReplay={onReplay} />
         {name && <div className="log-name">{name}</div>}
         {data && (
           <div className="log-presets">

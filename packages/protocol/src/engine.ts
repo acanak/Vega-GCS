@@ -78,6 +78,8 @@ export interface ProtocolEngineOptions {
   requestStreamHz?: number;
   /** Giden cerceve alicisi (link.write veya postMessage). */
   emit: (frame: Uint8Array) => void;
+  /** Gelen her gecerli cercevenin ham baytlari (tlog kaydi gibi tuketiciler icin). */
+  onRawFrame?: (raw: Uint8Array) => void;
 }
 
 export interface ParamEntry {
@@ -148,13 +150,17 @@ export class ProtocolEngine {
     this.gcsComponentId = opts.gcsComponentId ?? MAV_COMP_ID_MISSIONPLANNER;
     this.requestStreamHz = opts.requestStreamHz ?? 4;
     this.emit = opts.emit;
+    this.onRawFrame = opts.onRawFrame;
   }
+
+  private onRawFrame?: (raw: Uint8Array) => void;
 
   /** Gelen ham baytlari isle. */
   ingest(chunk: Uint8Array): void {
     const frames = this.parser.push(chunk);
     for (const f of frames) {
       if (f.crcOk === false) continue;
+      this.onRawFrame?.(f.raw);
       this.telemetry.packetsReceived++;
       this.telemetry.seenMessages[f.msgid] = (this.telemetry.seenMessages[f.msgid] ?? 0) + 1;
       this.route(f);
