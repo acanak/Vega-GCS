@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "ArduPilot Mission Planner'in web (tarayici) versiyonu - bkz. PLAN.md",
+  "packageManager": "pnpm@11.15.1",
   "engines": {
     "node": ">=22"
   },

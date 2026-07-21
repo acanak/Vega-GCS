@@ -9,3 +9,5 @@ coverage/
 pnpm-debug.log*
 release/
 package-lock.json
+# CI (npm ci) tekrarlanabilir masaüstü build'i için desktop lockfile'ı izlenir
+!apps/desktop/package-lock.json

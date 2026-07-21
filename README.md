@@ -83,7 +83,7 @@ npm run desktop         # build the web app + launch the desktop app (dev)
 npm run desktop:build   # produce installers into apps/desktop/release/
 ```
 
-`desktop:build` produces, per host OS: **Windows** (NSIS installer + portable `.exe`), **macOS** (`.dmg`), **Linux** (`.AppImage`). Build each target on its own OS (or in CI — GitHub Actions matrix). Code signing/notarization needs your own certificates.
+`desktop:build` produces, per host OS: **Windows** (NSIS installer + portable `.exe`), **macOS** (`.dmg`), **Linux** (`.AppImage`). Build each target on its own OS, or use CI: `.github/workflows/desktop-build.yml` builds all three in a matrix — run it manually from the Actions tab, or push a `v*` tag (a tag also opens a draft GitHub Release with the binaries attached). Code signing/notarization needs your own certificates.
 
 ## iPad / tablet (PWA)
 
