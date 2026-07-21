@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { modeName } from '@wmp/protocol';
+import { modeName, frameClass } from '@wmp/protocol';
 import type { GcsConnection } from '../gcs/protocol-shared';
 import { useTheme } from '../gcs/theme';
 import { renderPfd } from '../hud/renderPfd';
@@ -54,7 +54,10 @@ export function Hud({ connRef }: { connRef: { current: GcsConnection | null } })
 
       const yawDeg = t ? ((t.attitude.yaw * 180) / Math.PI + 360) % 360 : 0;
       const tgtHdg = t ? (Number.isFinite(t.position.hdg) ? t.position.hdg : yawDeg) : 0;
-      const tgtAs = t ? t.vfr.airspeed : 0;
+      // Kopterde birincil hız groundspeed'dir (airspeed sensörü yoksa bant 0'da kalır);
+      // uçakta airspeed. Trend ve seçili hız bug'ı da aynı kaynaktan türetilir.
+      const isCopter = !!t && t.vehicleType > 0 && frameClass(t.vehicleType) === 'copter';
+      const tgtAs = t ? (isCopter ? t.vfr.groundspeed : t.vfr.airspeed) : 0;
       const tgtAlt = t ? (Number.isFinite(t.position.relativeAlt) ? t.position.relativeAlt : t.vfr.alt) : 0;
 
       st.roll = lerp(st.roll, t ? t.attitude.roll : 0, k);
@@ -90,7 +93,7 @@ export function Hud({ connRef }: { connRef: { current: GcsConnection | null } })
       const state: PfdState = {
         connected,
         roll: st.roll, pitch: st.pitch, heading: st.heading,
-        airspeed: st.airspeed, groundspeed: t ? t.vfr.groundspeed : 0,
+        airspeed: st.airspeed, groundspeed: t ? t.vfr.groundspeed : 0, speedIsGround: isCopter,
         altitude: st.altitude, vspeed: st.vspeed, throttle: st.throttle,
         batteryV: t ? t.battery.voltage : NaN, batteryPct: t ? t.battery.remaining : -1,
         gpsFix: t ? t.gps.fixType : 0, gpsSats: t ? t.gps.satellites : 0,

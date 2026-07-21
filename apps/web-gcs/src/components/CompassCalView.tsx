@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { MSG, MAG_CAL_STATUS, MAV_CMD_DO_START_MAG_CAL, MAV_CMD_DO_ACCEPT_MAG_CAL, MAV_CMD_DO_CANCEL_MAG_CAL, MAV_CMD_SET_MESSAGE_INTERVAL } from '@wmp/protocol';
+import { MSG, MAG_CAL_STATUS, MAV_CMD_DO_START_MAG_CAL, MAV_CMD_DO_ACCEPT_MAG_CAL, MAV_CMD_DO_CANCEL_MAG_CAL, MAV_CMD_SET_MESSAGE_INTERVAL, frameClass } from '@wmp/protocol';
 import type { ParamEntry, VehicleTelemetry } from '@wmp/protocol';
 import type { UseGcs } from '../gcs/useGcs';
 import { useT } from '../gcs/i18n';
-import { drawCraftInSphere } from '../gcs/craft3d';
+import { drawCraftInSphere, craftModelFor, PLANE_CRAFT } from '../gcs/craft3d';
+import type { CraftModel } from '../gcs/craft3d';
 import { ParamRefreshNote } from './ParamRefresh';
 
 // EK3_SRC1_YAW — yön (yaw) kaynağı seçenekleri
@@ -115,6 +116,7 @@ export function CompassCalView({ gcs, telemetry, params, setParams }: {
   const dragRef = useRef<{ px: number; py: number } | null>(null);
   const faceSetsRef = useRef<Array<Set<number>>>(FACES.map(() => new Set()));
   const attRef = useRef<{ roll: number; pitch: number; yaw: number } | null>(null);
+  const modelRef = useRef<CraftModel>(PLANE_CRAFT);
 
   const resetCloud = (): void => {
     ptsRef.current = [];
@@ -176,6 +178,8 @@ export function CompassCalView({ gcs, telemetry, params, setParams }: {
   // Rehber: canlı tutumdan konumu algıla, o konumdaki dönüş dilimlerini işaretle
   const att = telemetry?.attitude;
   attRef.current = (connected && att) ? att : null;
+  // Araç sınıfına göre 3D model (heartbeat yoksa uçak — eski davranış)
+  modelRef.current = connected && telemetry && telemetry.vehicleType > 0 ? craftModelFor(frameClass(telemetry.vehicleType)) : PLANE_CRAFT;
   const curFace = att ? detectFace(att.roll, att.pitch) : -1;
   useEffect(() => {
     if (!running || !att || curFace < 0) return;
@@ -238,7 +242,7 @@ export function CompassCalView({ gcs, telemetry, params, setParams }: {
       ctx.stroke();
 
       // Kürenin içinde uçağın canlı duruşu (noktaların altına, yarı saydam)
-      if (attRef.current) drawCraftInSphere(ctx, cx, cyy, R, attRef.current, rot.x, rot.y, craftRgb, accentRgb);
+      if (attRef.current) drawCraftInSphere(ctx, cx, cyy, R, attRef.current, rot.x, rot.y, craftRgb, accentRgb, modelRef.current);
 
       // noktaları arkadan öne çiz
       const pts = ptsRef.current;

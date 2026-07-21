@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ParamEntry, VehicleTelemetry } from '@wmp/protocol';
-import { vehicleModeIds, modeName } from '@wmp/protocol';
+import { vehicleModeIds, modeName, quickModes } from '@wmp/protocol';
 import type { GcsConnection } from '../gcs/protocol-shared';
 import type { StatusTextEntry } from '../gcs/useGcs';
 import type { UseGcs } from '../gcs/useGcs';
@@ -19,8 +19,9 @@ interface Ctx {
   vtype: number;
 }
 
-const HELP =
-  'Komutlar — Eylem: arm · disarm · mod <ad> (ör. mod RTL) · kalkış <m> · hız <m/s> · RTL/LOITER/AUTO/FBWA. ' +
+// Yardım metni araç tipine göre örnek modlar içerir (kopter: LAND, uçak: FBWA vb.).
+const helpText = (vtype: number): string =>
+  'Komutlar — Eylem: arm · disarm · mod <ad> (ör. mod RTL) · kalkış <m> · hız <m/s> · ' + quickModes(vtype).join('/') + '. ' +
   'Ayar: set <PARAM> <değer> · get <PARAM>. ' +
   'Bilgi: batarya · irtifa · hız · mod · gps · konum · durum.';
 
@@ -33,7 +34,7 @@ function interpret(raw: string, ctx: Ctx): string {
   const q = s.includes('?') || /\b(mı|mi|mu|mü|nedir|kaç|ne kadar|what|how)\b/.test(s);
   const f1 = (v: number): string => (Number.isFinite(v) ? (Math.round(v * 10) / 10).toFixed(1) : '—');
 
-  if (has('yardım', 'yardim', 'help', 'komut')) return HELP;
+  if (has('yardım', 'yardim', 'help', 'komut')) return helpText(ctx.vtype);
 
   // ---- Bilgi sorgulari (soru ise ya da net anahtar) ----
   const info = (): string | null => {

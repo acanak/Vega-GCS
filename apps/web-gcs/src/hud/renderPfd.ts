@@ -14,8 +14,9 @@ export interface PfdState {
   roll: number; // rad
   pitch: number; // rad
   heading: number; // derece
-  airspeed: number; // m/s
+  airspeed: number; // m/s — hız bandında gösterilen birincil hız (kopter: groundspeed)
   groundspeed: number; // m/s
+  speedIsGround?: boolean; // birincil hız groundspeed ise (kopter) — ayrı GS çipi gizlenir
   altitude: number; // m
   vspeed: number; // m/s
   throttle: number; // %
@@ -597,7 +598,8 @@ function drawAnnunciators(
   ctx.fillText(armText, w / 2, 18);
   ctx.restore();
 
-  chip(ctx, pad, instBot - 30, 'GS ' + nn(s.groundspeed).toFixed(1), P.annunInk, 'left');
+  // Uçakta bant IAS gösterir, GS ayrı çipte; kopterde bant zaten GS — çip gereksiz.
+  if (!s.speedIsGround) chip(ctx, pad, instBot - 30, 'GS ' + nn(s.groundspeed).toFixed(1), P.annunInk, 'left');
   const bc = s.batteryPct >= 0 && s.batteryPct < 20 ? P.warn : s.batteryPct < 40 ? P.caution : P.go;
   const bt = (Number.isFinite(s.batteryV) ? s.batteryV.toFixed(1) + 'V' : '--V') + (s.batteryPct >= 0 ? ' ' + Math.round(s.batteryPct) + '%' : '');
   chip(ctx, pad, instBot - 14, bt, bc, 'left');
