@@ -38,6 +38,13 @@ export function FlightModesView({ gcs, params, setParams }: { gcs: UseGcs; param
   };
   const setMode = (i: number, val: number): void => write('FLTMODE' + (i + 1), val);
 
+  // Kopter Simple/Super Simple: bit i = pozisyon i+1 (parametreler yalnızca kopterde var)
+  const simpleEntry = pget('SIMPLE');
+  const superEntry = pget('SUPER_SIMPLE');
+  const simpleVal = Math.round(simpleEntry?.value ?? 0);
+  const superVal = Math.round(superEntry?.value ?? 0);
+  const toggleBit = (name: string, cur: number, bit: number, on: boolean): void => write(name, on ? cur | bit : cur & ~bit);
+
   const has = !!pget('FLTMODE1');
   return (
     <div className="setup-panel">
@@ -68,11 +75,26 @@ export function FlightModesView({ gcs, params, setParams }: { gcs: UseGcs; param
                 <select value={String(val)} onChange={(e) => setMode(i, Number(e.target.value))}>
                   {Object.entries(modes).map(([id, nm]) => <option key={id} value={id}>{nm}</option>)}
                 </select>
+                {simpleEntry && (
+                  <label className="chk" title="Simple">
+                    <input type="checkbox" checked={(simpleVal & (1 << i)) > 0}
+                      onChange={(e) => toggleBit('SIMPLE', simpleVal, 1 << i, e.target.checked)} />
+                    <span>S</span>
+                  </label>
+                )}
+                {superEntry && (
+                  <label className="chk" title="Super Simple">
+                    <input type="checkbox" checked={(superVal & (1 << i)) > 0}
+                      onChange={(e) => toggleBit('SUPER_SIMPLE', superVal, 1 << i, e.target.checked)} />
+                    <span>SS</span>
+                  </label>
+                )}
               </div>
             );
           })}
 
           {has && <div className="setup-desc">{t('Mod kanalını (FLTMODE_CH) seçin; vericide anahtarı oynatınca aktif pozisyon vurgulanır. Her pozisyonun yanında beklenen PWM aralığı yazılıdır.')}</div>}
+          {has && simpleEntry && <div className="setup-desc">{t('S = Simple (kontroller kalkıştaki yöne göre), SS = Super Simple (kontroller eve göre; GPS gerektirir). İşaretli pozisyonda etkindir.')}</div>}
         </div>
       </div>
     </div>

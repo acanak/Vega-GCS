@@ -20,7 +20,7 @@
 
 ## Yapılacaklar (öncelik sırasıyla)
 
-> Durum: P0–P5 tamamlandı (2026-07-21). Kalan: P6 (v2 adayları) + SITL doğrulaması.
+> Durum: P0–P5 ve P6'nın çekirdeği tamamlandı (2026-07-21). Kalan: winch/gripper aux ekranları + SITL doğrulaması.
 
 ### ✅ P0 — Altyapı: Setup menüsü araç tipine duyarlı olsun
 **Sorun:** `SetupView.tsx:47-49,91,95` menüde "Airframe" (PlaneSetupView) ve "TECS" (TecsTuneView) her araçta görünüyor.
@@ -59,10 +59,10 @@ Mevcut `PidTuneView` temel `ATC_*` dallanmasını yapıyor; MP "Extended Tuning"
 - `craft3d.ts` — sabit kanat mesh'inin yanına quad mesh'i; CompassCal/BoardOrientation `frameClass`'a göre model seçsin.
 
 ### P6 — Sonrası (v2 adayları)
-- Harmonic notch / gyro FFT kurulum ekranı (`INS_HNTCH_*`).
-- Copter için Simple/Super Simple mod yapılandırması (`SUPER_SIMPLE`, FlightModesView'a ek sütun — MP'de mod başına checkbox).
-- Landing gear (`LGR_*`), winch, gripper aux ekranları.
-- `LOITER_TO_ALT(31)` / `DO_LAND_START(189)` görev komutları (bunlar aslında Plane eksiği; copter'i bloklamıyor).
+- ✅ Harmonic notch / gyro FFT kurulum ekranı (`INS_HNTCH_*`) — Ayar → Titreşim Filtresi.
+- ✅ Copter için Simple/Super Simple mod yapılandırması (FlightModesView'da pozisyon başına S/SS kutuları).
+- ✅ Landing gear (`LGR_*`) — Donanım → İniş Takımı. Kalan: winch, gripper aux ekranları.
+- ✅ `LOITER_TO_ALT(31)` / `DO_LAND_START(189)` görev komutları (CommandGrid'de seçilebilir).
 
 ## Test akışı
 

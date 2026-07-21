@@ -24,9 +24,9 @@ import { OSDView } from './OSDView';
 import { ParamConfigView } from './ParamConfigView';
 import { SikRadioView } from './SikRadioView';
 import { LidarSetupView } from './LidarSetupView';
-import { GPS_FIELDS, ADSB_FIELDS, FLOW_FIELDS } from '../gcs/ardupilot-config';
+import { GPS_FIELDS, ADSB_FIELDS, FLOW_FIELDS, NOTCH_FIELDS, LGR_FIELDS } from '../gcs/ardupilot-config';
 
-type Section = 'params' | 'firmware' | 'accel' | 'compass' | 'radio' | 'rc' | 'servo' | 'plane' | 'copter' | 'orient' | 'battery' | 'tune' | 'tecs' | 'modes' | 'failsafe' | 'serial' | 'osd' | 'gps' | 'lidar' | 'adsb' | 'flow' | 'sik';
+type Section = 'params' | 'firmware' | 'accel' | 'compass' | 'radio' | 'rc' | 'servo' | 'plane' | 'copter' | 'orient' | 'battery' | 'tune' | 'tecs' | 'notch' | 'lgr' | 'modes' | 'failsafe' | 'serial' | 'osd' | 'gps' | 'lidar' | 'adsb' | 'flow' | 'sik';
 // Menü öğesi: [bölüm, etiket, görünür olduğu araç sınıfları?]. frames verilmezse her araçta görünür.
 type MenuItem = [Section, string, FrameClass[]?];
 // Menü, aracı sıfırdan yapılandırma sırasına göre (ground-up) düzenlidir:
@@ -48,9 +48,10 @@ const GROUPS: Array<{ title: string; numbered?: boolean; items: MenuItem[] }> = 
   { title: 'Donanım', items: [
     ['battery', 'Pil / Güç'], ['gps', 'GPS'], ['serial', 'Seri Portlar'], ['sik', 'SiK Radyo'],
     ['lidar', 'Lidar / Mesafe'], ['flow', 'Optik Akış'], ['adsb', 'ADS-B'], ['osd', 'OSD'],
+    ['lgr', 'İniş Takımı'],
   ] },
   { title: 'Ayar', items: [
-    ['tune', 'PID Ayar'], ['tecs', 'TECS (Uçak)', ['plane']],
+    ['tune', 'PID Ayar'], ['tecs', 'TECS (Uçak)', ['plane']], ['notch', 'Titreşim Filtresi'],
   ] },
 ];
 
@@ -113,6 +114,8 @@ export function SetupView({ gcs, params, setParams, telemetry }: Props) {
         {effectiveSection === 'flow' && <ParamConfigView gcs={gcs} params={params} setParams={setParams} title={t('Optik Akış')} note={t('Optik akış sensörü tipi, yönelim ve konum.')} fields={FLOW_FIELDS} />}
         {effectiveSection === 'adsb' && <ParamConfigView gcs={gcs} params={params} setParams={setParams} title={t('ADS-B')} note={t('ADS-B alıcı tipi ve çarpışma önleme (avoidance).')} fields={ADSB_FIELDS} />}
         {effectiveSection === 'sik' && <SikRadioView gcs={gcs} />}
+        {effectiveSection === 'notch' && <ParamConfigView gcs={gcs} params={params} setParams={setParams} title={t('Titreşim Filtresi')} note={t('Harmonic notch: gyroya ulaşan motor gürültüsünü hedefli süzer. INS_HNTCH_ENABLE = 1 yazıp parametreleri yeniden indirince alt ayarlar görünür.')} fields={NOTCH_FIELDS} />}
+        {effectiveSection === 'lgr' && <ParamConfigView gcs={gcs} params={params} setParams={setParams} title={t('İniş Takımı')} note={t('Katlanır iniş takımı: SERVOn_FUNCTION = 29 (Landing Gear) atayın; irtifaya göre otomatik aç/kapa.')} fields={LGR_FIELDS} />}
       </div>
       {help && (
         <aside className="setup-help">
