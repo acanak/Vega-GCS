@@ -17,6 +17,8 @@ export const COMMANDS: readonly CmdDef[] = [
   { id: 17, name: 'LOITER_UNLIM', hasLocation: true, routable: true, params: ['', '', 'Yarıçap', 'Yaw'] },
   { id: 18, name: 'LOITER_TURNS', hasLocation: true, routable: true, params: ['Tur', '', 'Yarıçap', 'Yaw'] },
   { id: 19, name: 'LOITER_TIME', hasLocation: true, routable: true, params: ['Süre (s)', '', 'Yarıçap', 'Yaw'] },
+  { id: 31, name: 'LOITER_TO_ALT', hasLocation: true, routable: true, params: ['Yön (0/1)', '', 'Yarıçap', ''] },
+  { id: 189, name: 'DO_LAND_START', hasLocation: true, routable: false, params: ['', '', '', ''] },
   { id: 82, name: 'SPLINE_WAYPOINT', hasLocation: true, routable: true, params: ['Bekleme (s)', '', '', ''] },
   { id: 201, name: 'DO_SET_ROI', hasLocation: true, routable: false, params: ['', '', '', ''] },
   { id: 177, name: 'DO_JUMP', hasLocation: false, routable: false, params: ['WP no', 'Tekrar', '', ''] },

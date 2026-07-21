@@ -53,3 +53,40 @@ export const FLOW_FIELDS: readonly CfgField[] = [
   { name: 'FLOW_FXSCALER', label: 'X scale factor' }, { name: 'FLOW_FYSCALER', label: 'Y scale factor' },
   { name: 'FLOW_POS_X', label: 'Position X', unit: 'm' }, { name: 'FLOW_POS_Y', label: 'Position Y', unit: 'm' }, { name: 'FLOW_POS_Z', label: 'Position Z', unit: 'm' },
 ];
+
+// Harmonic notch (INS_HNTCH_*) — gyro'ya ulaşan motor gürültüsünü hedefli süzer.
+// ENABLE=1 yazılıp parametreler yeniden indirilene dek alt parametreler görünmez.
+const HNTCH_MODE: readonly CodeLabel[] = [
+  { code: 0, label: 'Fixed (sabit frekans)' }, { code: 1, label: 'Throttle' }, { code: 2, label: 'RPM sensor' },
+  { code: 3, label: 'ESC telemetry' }, { code: 4, label: 'In-flight FFT' }, { code: 5, label: 'RPM sensor 2' },
+];
+export const NOTCH_FIELDS: readonly CfgField[] = [
+  { name: 'INS_GYRO_FILTER', label: 'Gyro low-pass filter', unit: 'Hz' },
+  { name: 'INS_HNTCH_ENABLE', label: 'Harmonic notch enable', bool: true },
+  { name: 'INS_HNTCH_MODE', label: 'Frequency source', values: HNTCH_MODE },
+  { name: 'INS_HNTCH_REF', label: 'Reference (hover throttle)' },
+  { name: 'INS_HNTCH_FREQ', label: 'Base frequency', unit: 'Hz' },
+  { name: 'INS_HNTCH_BW', label: 'Bandwidth', unit: 'Hz' },
+  { name: 'INS_HNTCH_ATT', label: 'Attenuation', unit: 'dB' },
+  { name: 'INS_HNTCH_HMNCS', label: 'Harmonics (bitmask)' },
+  { name: 'INS_HNTCH_OPTS', label: 'Options (bitmask)' },
+  { name: 'INS_HNTC2_ENABLE', label: '2nd notch enable', bool: true },
+  { name: 'INS_HNTC2_MODE', label: '2nd frequency source', values: HNTCH_MODE },
+  { name: 'INS_HNTC2_FREQ', label: '2nd base frequency', unit: 'Hz' },
+  { name: 'INS_HNTC2_BW', label: '2nd bandwidth', unit: 'Hz' },
+  { name: 'FFT_ENABLE', label: 'Gyro FFT enable', bool: true },
+  { name: 'FFT_MINHZ', label: 'FFT min frequency', unit: 'Hz' },
+  { name: 'FFT_MAXHZ', label: 'FFT max frequency', unit: 'Hz' },
+];
+
+// Landing gear (LGR_*) — iniş takımı servo kontrolü (SERVOn_FUNCTION = 29 Landing Gear).
+const LGR_STARTUP: readonly CodeLabel[] = [
+  { code: 0, label: 'Wait for pilot input' }, { code: 1, label: 'Retract' }, { code: 2, label: 'Deploy' },
+];
+export const LGR_FIELDS: readonly CfgField[] = [
+  { name: 'LGR_ENABLE', label: 'Landing gear enable', bool: true },
+  { name: 'LGR_STARTUP', label: 'Startup behaviour', values: LGR_STARTUP },
+  { name: 'LGR_DEPLOY_ALT', label: 'Deploy below', unit: 'm' },
+  { name: 'LGR_RETRACT_ALT', label: 'Retract above', unit: 'm' },
+  { name: 'LGR_OPTIONS', label: 'Options (bitmask)' },
+];
