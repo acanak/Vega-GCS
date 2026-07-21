@@ -345,7 +345,7 @@ export function OSDView({ gcs, params, setParams }: { gcs: UseGcs; params: Param
           {typeNote && <div className="osd-typenote">⚠ {typeNote}</div>}
           {connected && !has('OSD_TYPE') && <div className="osd-typenote">⚠ {t('OSD parametreleri yüklü değil — Parametreler sekmesinden indirin.')}</div>}
 
-          <div className="osd-grid" ref={gridRef} style={{ aspectRatio: cols + ' / ' + rows, backgroundSize: 100 / cols + '% ' + 100 / rows + '%' }}>
+          <div className="osd-grid" ref={gridRef} style={{ aspectRatio: grid.aspect, backgroundSize: 100 / cols + '% ' + 100 / rows + '%' }}>
             {/* Gözlük kendi OSD bölgeleri (çakışmayı önlemek için) */}
             {(GOGGLE_ZONES[goggle] ?? []).map((z, i) => (
               <div key={'z' + i} className="osd-zone" style={{ left: z.x * 100 + '%', top: z.y * 100 + '%', width: z.w * 100 + '%', height: z.h * 100 + '%' }}>
