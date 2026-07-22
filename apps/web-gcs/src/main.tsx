@@ -3,7 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { ThemeProvider } from './gcs/theme';
 import { I18nProvider } from './gcs/i18n';
+import { initAnalytics } from './gcs/analytics';
 import './styles.css';
+
+initAnalytics();
 
 const rootEl = document.getElementById('root');
 if (!rootEl) throw new Error('#root bulunamadi');
