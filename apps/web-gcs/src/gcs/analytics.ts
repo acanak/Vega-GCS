@@ -8,7 +8,9 @@
 import { isNative } from './native/vega-native-link';
 
 const POSTHOG_KEY = (import.meta.env.VITE_POSTHOG_KEY as string | undefined) ?? 'phc_qUmqPnfQyjczw6Z8rtrucwXqbAaREyEsYKPzy3GH3F2x';
-const POSTHOG_HOST = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://us.i.posthog.com';
+// Reverse proxy: reklam engelleyicilere takılmamak için olaylar kendi alan
+// adımız üzerinden PostHog'a (US) iletilir.
+const POSTHOG_HOST = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://ricefield.vegagcs.com';
 
 /** Hosted (tarayıcıdan https ile açılan production) ortam mı? */
 function isHostedWeb(): boolean {
@@ -27,6 +29,7 @@ export function initAnalytics(): void {
   void import('posthog-js').then(({ default: posthog }) => {
     posthog.init(POSTHOG_KEY, {
       api_host: POSTHOG_HOST,
+      ui_host: 'https://us.posthog.com', // api_host proxy olduğu için panel linkleri gerçek UI'a gitsin
       // Tıklama/etkileşim takibi (autocapture) ve pageview varsayılan olarak açık.
       capture_exceptions: true, // window.onerror + unhandledrejection → Error Tracking
       session_recording: {
