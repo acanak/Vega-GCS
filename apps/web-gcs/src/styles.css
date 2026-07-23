@@ -815,6 +815,17 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--data); outl
 .settings-pop .theme-toggle button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .mode-txt { font-size: 11px; }
 
+/* Ayarlar: Asistan (LLM) bölümü */
+.set-input { width: 100%; background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 6px 9px; font-size: 12px; font-family: var(--mono); }
+.set-input:focus { outline: none; border-color: var(--data); }
+.set-key-row { display: flex; gap: 6px; }
+.set-key-row .set-input { flex: 1; min-width: 0; }
+.set-mini { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim); border-radius: 8px; padding: 5px 9px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+.set-mini:hover:not(:disabled) { color: var(--ink); border-color: var(--data); }
+.set-mini:disabled { opacity: 0.45; cursor: default; }
+.set-grow { flex: 1; }
+.set-note { font-size: 10px; line-height: 1.45; color: var(--ink-faint); }
+
 /* Topbar dil seçici (bayraklar) */
 .lang-switch { display: inline-flex; gap: 2px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
 .lang-flag-btn { background: transparent; border: 0; padding: 3px 6px; border-radius: 6px; cursor: pointer; font-size: 15px; line-height: 1; opacity: 0.45; filter: grayscale(0.7); transition: opacity 0.12s, filter 0.12s; }

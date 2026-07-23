@@ -5,6 +5,8 @@ import type { GcsConnection } from '../gcs/protocol-shared';
 import type { StatusTextEntry } from '../gcs/useGcs';
 import type { UseGcs } from '../gcs/useGcs';
 import { useT } from '../gcs/i18n';
+import { useSettings } from '../gcs/settings';
+import { llmActive, llmLabel, chatDirect } from '../gcs/llm-client';
 
 const CMD_NAV_TAKEOFF = 22;
 const CMD_DO_CHANGE_SPEED = 178;
@@ -172,6 +174,10 @@ export function ChatPanel({ gcs, telemetry, params, setParams, injectRef }: {
   const [llm, setLlm] = useState(false);
   const [beName, setBeName] = useState('');
   const [busy, setBusy] = useState(false);
+  // BYOK: kullanıcı ayarlarda kendi LLM anahtarını girdiyse köprüye hiç gitme,
+  // tarayıcıdan doğrudan sağlayıcıya bağlan (anahtar cihazdan çıkmaz).
+  const { llm: llmCfg } = useSettings();
+  const byok = llmActive(llmCfg);
   const idRef = useRef(1);
   const seenRef = useRef(0);
   const histRef = useRef<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
@@ -234,7 +240,19 @@ export function ChatPanel({ gcs, telemetry, params, setParams, injectRef }: {
     setInput('');
     push('user', text);
     const ctx: Ctx = { conn: gcs.connRef.current, tele: telemetry, params, setParams, vtype: telemetry?.vehicleType ?? 0 };
-    if (llm) {
+    if (byok) {
+      setBusy(true);
+      try {
+        const hist = histRef.current.concat({ role: 'user', content: text });
+        const reply = (await chatDirect(llmCfg, hist, buildContext(ctx))).trim() || '—';
+        histRef.current = hist.concat({ role: 'assistant', content: reply }).slice(-16);
+        handleReply(reply, ctx);
+        return;
+      } catch (e) {
+        // Anahtar/kota/ağ hatası: nedeni göster, bu mesajı yerel yorumlayıcıyla karşıla.
+        push('sys', t('LLM hatası — yerel moda düşüldü: ') + (e instanceof Error ? e.message : String(e)));
+      } finally { setBusy(false); }
+    } else if (llm) {
       setBusy(true);
       try {
         const hist = histRef.current.concat({ role: 'user', content: text });
@@ -256,7 +274,7 @@ export function ChatPanel({ gcs, telemetry, params, setParams, injectRef }: {
 
   return (
     <div className="card chat-card">
-      <div className="card-hd"><h2>{t('Asistan')}</h2><span className="hd-note">{busy ? '…' : llm ? 'AI' + (beName ? '·' + beName : '') : t('yerel')}</span></div>
+      <div className="card-hd"><h2>{t('Asistan')}</h2><span className="hd-note">{busy ? '…' : byok ? 'AI·' + llmLabel(llmCfg) : llm ? 'AI' + (beName ? '·' + beName : '') : t('yerel')}</span></div>
       <div className="card-body chat-body" ref={bodyRef}>
         {feed.length === 0 && <div className="chat-hint">{t('Komut yazın: arm · mod RTL · kalkış 50 · set WPNAV_SPEED 500 · batarya · durum · yardım')}</div>}
         {feed.map((m) => (

@@ -768,4 +768,17 @@ export const EN: Record<string, string> = {
   // Mobil taşıyıcılar
   "UDP · WiFi telemetri": "UDP · WiFi telemetry",
   "Dinlenecek yerel port": "Local port to listen on",
+  "Asistan (LLM)": "Assistant (LLM)",
+  "Sağlayıcı": "Provider",
+  "Özel (OpenAI-uyumlu)": "Custom (OpenAI-compatible)",
+  "Taban URL": "Base URL",
+  "Model": "Model",
+  "Gizle": "Hide",
+  "Göster": "Show",
+  "Bağlantıyı dene": "Test connection",
+  "Çalışıyor ✓": "Working ✓",
+  "Başarısız ✗": "Failed ✗",
+  "Anahtarı sil": "Delete key",
+  "Anahtar yalnız bu tarayıcıda saklanır; sunucularımıza gönderilmez. Kotası sınırlı bir anahtar kullanın.": "The key is stored only in this browser; it is never sent to our servers. Use a key with a limited quota.",
+  "LLM hatası — yerel moda düşüldü: ": "LLM error — fell back to local mode: ",
 };
